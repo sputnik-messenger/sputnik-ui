@@ -21,14 +21,23 @@ import 'package:sputnik_matrix_sdk/matrix_manager/matrix_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_udid/flutter_udid.dart';
+import 'package:sputnik_ui/tool/file_saver.dart';
 
 import 'conversations_list_route.dart';
-import 'package:sputnik_animations/sputnik_animations.dart';
 
 class LoginRoute extends StatefulWidget {
   final MatrixManager matrixManager;
+  final WidgetBuilder artwork;
+  final WidgetBuilder background;
+  final FileSaver fileSaver;
 
-  const LoginRoute({Key key, this.matrixManager}) : super(key: key);
+  const LoginRoute({
+    Key key,
+    this.matrixManager,
+    this.artwork,
+    this.background,
+    this.fileSaver,
+  }) : super(key: key);
 
   @override
   _LoginRouteState createState() => _LoginRouteState();
@@ -67,19 +76,7 @@ class _LoginRouteState extends State<LoginRoute> {
       body: SingleChildScrollView(
         child: Stack(
           children: [
-            ClipPath(
-              clipper: TriangleClipper(),
-              clipBehavior: Clip.antiAlias,
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: FractionallySizedBox(
-                  widthFactor: 1,
-                  child: Container(
-                    color: Theme.of(context).primaryColorDark,
-                  ),
-                ),
-              ),
-            ),
+            widget.background(context),
             Form(
               key: _formKey,
               child: Padding(
@@ -89,7 +86,7 @@ class _LoginRouteState extends State<LoginRoute> {
                   children: <Widget>[
                     Padding(
                       padding: const EdgeInsets.only(bottom: 50.0),
-                      child: FractionallySizedBox(widthFactor: 0.7, child: OrbitingSputnikAnimation(runAnimation: true)),
+                      child: FractionallySizedBox(widthFactor: 0.7, child: widget.artwork(context)),
                     ),
                     TextFormField(
                       controller: loginId,
@@ -147,8 +144,12 @@ class _LoginRouteState extends State<LoginRoute> {
                                     Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              StoreProvider(store: widget.matrixManager.matrixStore, child: ConversationListRoute(accountController)),
+                                          builder: (context) => StoreProvider(
+                                              store: widget.matrixManager.matrixStore,
+                                              child: ConversationListRoute(
+                                                accountController,
+                                                widget.fileSaver,
+                                              )),
                                         ));
                                     accountController.startContinuousSync();
                                   } catch (e, s) {
@@ -171,20 +172,4 @@ class _LoginRouteState extends State<LoginRoute> {
       ),
     );
   }
-}
-
-class TriangleClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.relativeLineTo(size.width * 1.1, 0.0);
-    path.relativeLineTo(-size.width * 0.1, size.height * 0.85);
-    path.relativeLineTo(-size.width * 0.9, -size.height * 0.2);
-    path.lineTo(-0.1 * size.width, 0);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(TriangleClipper oldClipper) => false;
 }

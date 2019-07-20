@@ -18,6 +18,7 @@
 import 'dart:convert';
 
 import 'package:sputnik_ui/cache/media_cache.dart';
+import 'package:sputnik_ui/tool/file_saver.dart';
 import 'package:sputnik_ui/tool/name_color_manager.dart';
 import 'package:sputnik_ui/tool/time_text_util.dart';
 import 'package:sputnik_ui/widget/component/message_item.dart';
@@ -45,6 +46,7 @@ class MessageList extends StatefulWidget {
   final Future<void> Function() onRefreshLatest;
   final AccountController accountController;
   final TimelineModel model;
+  final FileSaver fileSaver;
 
   const MessageList({
     Key key,
@@ -52,6 +54,7 @@ class MessageList extends StatefulWidget {
     this.onRefreshLatest,
     this.accountController,
     this.model,
+    this.fileSaver,
   }) : super(key: key);
 
   @override
@@ -183,6 +186,7 @@ class _MessageListState extends State<MessageList> {
         );
       } else if (msg is ImageMessage) {
         child = ImageWidget(
+          saveImage: widget.fileSaver.saveImage,
           event: event,
           msg: msg,
           matrixUriToUrl: widget.accountController.matrixUriToUrl,

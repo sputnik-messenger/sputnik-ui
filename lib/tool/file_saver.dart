@@ -24,13 +24,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class FileSaver {
-  static FileSaver _fileSaver = FileSaver._();
 
-  factory FileSaver.instance() {
-    return _fileSaver;
-  }
 
-  FileSaver._();
+  final String mediaFileDirectoryName;
+
+  FileSaver(this.mediaFileDirectoryName);
 
   final mediaCache = MediaCache.instance();
 
@@ -40,7 +38,7 @@ class FileSaver {
     await _requestPermissionsIfNeeded();
     Directory extDir = await getExternalStorageDirectory();
     File file = await mediaCache.getSingleFile(url.toString());
-    Directory targetDir = Directory(join(extDir.path, 'sputnik', 'images'));
+    Directory targetDir = Directory(join(extDir.path, mediaFileDirectoryName, 'images'));
     await targetDir.create(recursive: true);
     final targetFile = join(targetDir.path, fileName);
     debugPrint('saved to $targetFile');

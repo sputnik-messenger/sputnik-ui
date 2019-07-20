@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import 'package:sputnik_ui/tool/file_saver.dart';
 import 'package:sputnik_ui/widget/component/conversation_list_item.dart';
 import 'package:sputnik_matrix_sdk/matrix_manager/account_controller.dart';
 import 'package:flutter/material.dart';
@@ -26,8 +27,12 @@ import 'conversation_route.dart';
 
 class ConversationListRoute extends StatelessWidget {
   final AccountController accountController;
+  final FileSaver fileSaver;
 
-  ConversationListRoute(this.accountController);
+  ConversationListRoute(
+    this.accountController,
+    this.fileSaver,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +62,7 @@ class ConversationListRoute extends StatelessWidget {
                 nameAvatar.item1,
                 nameAvatar.item2,
                 tuple.item2,
+                fileSaver,
               );
             },
             itemCount: tuple.item1.length,
@@ -120,6 +126,7 @@ Widget _itemFromRoom(
   String roomName,
   Uri avatarUrl,
   Map<String, UserSummary> heroes,
+  FileSaver fileSaver,
 ) {
   return ConversationListItem(
     roomSummary,
@@ -140,6 +147,7 @@ Widget _itemFromRoom(
               avatarUrl: avatarUrl,
               title: roomName,
               subtitle: roomSummary.roomStateValues.topic?.content?.topic,
+              fileSaver: fileSaver,
             ),
           ),
         ),

@@ -17,6 +17,7 @@
 
 import 'dart:io';
 
+import 'package:sputnik_ui/tool/file_saver.dart';
 import 'package:sputnik_ui/widget/component/conversation_app_bar.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/audio_messag_overlay.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/message_input_bar.dart';
@@ -38,6 +39,7 @@ class ConversationRoute extends StatefulWidget {
   final String title;
   final String subtitle;
   final Uri avatarUrl;
+  final FileSaver fileSaver;
 
   const ConversationRoute({
     Key key,
@@ -46,6 +48,7 @@ class ConversationRoute extends StatefulWidget {
     this.title,
     this.subtitle,
     this.avatarUrl,
+    this.fileSaver,
   }) : super(key: key);
 
   @override
@@ -114,6 +117,7 @@ class _ConversationRouteState extends State<ConversationRoute> {
                         await widget.accountController.sync();
                       },
                       model: timelineModel,
+                      fileSaver: widget.fileSaver,
                     )),
                     MessageInputBar(
                       audioMessageOverlayController: audioMessageOverlayController,

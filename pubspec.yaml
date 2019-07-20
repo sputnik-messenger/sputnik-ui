@@ -19,8 +19,6 @@ dependencies:
   flutter_udid: ^1.0.0
   sputnik_matrix_sdk:
     path: ../sputnik_matrix_sdk
-  sputnik_animations:
-    path: ../sputnik_animations
   sputnik_audio_recorder:
     path: ../sputnik_audio_recorder
   flutter:

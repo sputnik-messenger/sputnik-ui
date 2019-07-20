@@ -31,6 +31,7 @@ class ImageWidget extends StatefulWidget {
   final ImageMessage msg;
   final Uri Function(Uri) matrixUriToUrl;
   final Uri Function(Uri) matrixUriToThumbnailUrl;
+  final Future<File> Function(Uri url, String name) saveImage;
 
   const ImageWidget({
     Key key,
@@ -38,6 +39,7 @@ class ImageWidget extends StatefulWidget {
     this.msg,
     this.matrixUriToUrl,
     this.matrixUriToThumbnailUrl,
+    this.saveImage,
   }) : super(key: key);
 
   @override
@@ -46,7 +48,6 @@ class ImageWidget extends StatefulWidget {
 
 class _ImageWidgetState extends State<ImageWidget> {
   SaveState saveState;
-  final fileSaver = FileSaver.instance();
   final mediaCache = MediaCache.instance();
 
   @override
@@ -95,7 +96,7 @@ class _ImageWidgetState extends State<ImageWidget> {
                     });
                     SaveState result = SaveState.failed;
                     try {
-                      File file = await fileSaver.saveImage(fullUrl, name);
+                      File file = await widget.saveImage(fullUrl, name);
                       bool exists = await file.exists();
                       result = exists ? SaveState.success : SaveState.failed;
                     } catch (e, stack) {
