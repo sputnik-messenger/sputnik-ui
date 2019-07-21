@@ -66,7 +66,7 @@ class _ConversationListItemSate extends State<ConversationListItem> {
 
     final theme = Theme.of(context);
     return ListTile(
-      leading: AspectRatio(aspectRatio: 1, child: RoomAvatar(widget.avatarUrl, widget.roomName)),
+      leading: AspectRatio(aspectRatio: 1, child: RoomAvatar(widget.avatarUrl, widget.roomName, key: Key(widget.avatarUrl.toString()),)),
       title: Text(
         widget.roomName,
         textScaleFactor: 1.2,
