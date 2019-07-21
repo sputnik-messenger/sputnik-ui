@@ -30,6 +30,7 @@ class LoginRoute extends StatefulWidget {
   final WidgetBuilder artwork;
   final WidgetBuilder background;
   final FileSaver fileSaver;
+  final String defaultDeviceName;
 
   const LoginRoute({
     Key key,
@@ -37,6 +38,7 @@ class LoginRoute extends StatefulWidget {
     this.artwork,
     this.background,
     this.fileSaver,
+    this.defaultDeviceName,
   }) : super(key: key);
 
   @override
@@ -56,15 +58,7 @@ class _LoginRouteState extends State<LoginRoute> {
   @override
   void initState() {
     super.initState();
-    deviceName.text = _initDeviceName();
-  }
-
-  String _initDeviceName() {
-    String name = 'Device #1 - Sputnik';
-    if (Platform.isIOS || Platform.isAndroid) {
-      name = 'Phone #1 - Sputnik';
-    }
-    return name;
+    deviceName.text = widget.defaultDeviceName;
   }
 
   @override
