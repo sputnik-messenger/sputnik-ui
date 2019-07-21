@@ -107,6 +107,7 @@ class _ImageWidgetState extends State<ImageWidget> {
                       bool exists = await file.exists();
                       result = exists ? SaveState.success : SaveState.failed;
                     } catch (e, stack) {
+                      debugPrint(e.toString());
                       debugPrint(stack.toString());
                     }
                     setState(() {
