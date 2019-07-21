@@ -20,12 +20,14 @@ import 'dart:io';
 import 'package:sputnik_ui/cache/media_cache.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:downloads_path_provider/downloads_path_provider.dart';
+
 
 class FileSaver {
 
 
+  //todo: currently not used but probably in future
   final String mediaFileDirectoryName;
 
   FileSaver(this.mediaFileDirectoryName);
@@ -36,9 +38,9 @@ class FileSaver {
 
   Future<File> saveImage(Uri url, String fileName) async {
     await _requestPermissionsIfNeeded();
-    Directory extDir = await getExternalStorageDirectory();
+    final downloadsDirectory = await DownloadsPathProvider.downloadsDirectory; // todo: uses deprecated api
     File file = await mediaCache.getSingleFile(url.toString());
-    Directory targetDir = Directory(join(extDir.path, mediaFileDirectoryName, 'images'));
+    Directory targetDir = Directory('${downloadsDirectory.path}');
     await targetDir.create(recursive: true);
     final targetFile = join(targetDir.path, fileName);
     debugPrint('saved to $targetFile');

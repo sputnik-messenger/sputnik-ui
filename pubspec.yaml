@@ -12,11 +12,12 @@ dependencies:
   intl: ^0.15.8
   tuple: ^1.0.2
   flutter_cache_manager: ^0.3.2
-  audioplayers: ^0.12.1
+  audioplayers: ^0.13.1
   flutter_html: ^0.10.1
   multi_image_picker: ^4.3.3
   flutter_redux: ^0.5.3
   flutter_udid: ^1.0.0
+  downloads_path_provider: ^0.1.0
   sputnik_matrix_sdk:
     path: ../sputnik_matrix_sdk
   sputnik_audio_recorder:
@@ -26,7 +27,7 @@ dependencies:
 
 
 dependency_overrides:
-  path_provider: ^1.1.0
+  path_provider: ^1.1.2
 
 dev_dependencies:
   flutter_test:
