@@ -93,6 +93,7 @@ class _ConversationRouteState extends State<ConversationRoute> {
             entries,
             tuple.item2.roomMembers.toMap(),
             tuple.item2.reactions,
+            tuple.item1.lastRelevantRoomEvent,
           );
 
           return Scaffold(

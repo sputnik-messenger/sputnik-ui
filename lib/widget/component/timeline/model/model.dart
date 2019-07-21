@@ -67,7 +67,7 @@ class TimelineModel {
   final List<TimelineEntry> entries;
   final Map<String, UserSummary> members;
   final BuiltMap<String, BuiltMap<String, BuiltList<RoomEvent>>> reactions;
-  RoomEvent latestRoomEvent;
+  final RoomEvent latestRoomEvent;
 
   TimelineModel(
     this.userId,
@@ -75,6 +75,7 @@ class TimelineModel {
     this.entries,
     this.members,
     this.reactions,
+    this.latestRoomEvent,
   ) {
     updateIndexMap();
   }
@@ -90,17 +91,6 @@ class TimelineModel {
       for (int j = 0; j < entry.length; j++) {
         indexMap[length] = Tuple2(i, j);
         length += 1;
-        final subEntry = entry.entryAtIndex(j);
-        if (latestRoomEvent == null && subEntry is EventEntry) {
-          latestRoomEvent = subEntry.event.event;
-          final latestReactions = reactions[latestRoomEvent.event_id];
-          //todo: terrible solution, .... needs a better way to access the latest event
-          if (latestReactions != null) {
-            final newerReaction =
-                latestReactions.values.expand((l) => l).firstWhere((e) => e.origin_server_ts > latestRoomEvent.origin_server_ts, orElse: () => null);
-            latestRoomEvent = newerReaction ?? latestRoomEvent;
-          }
-        }
       }
     }
   }
