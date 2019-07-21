@@ -76,6 +76,7 @@ class _MessageListState extends State<MessageList> {
   final thisWeekFormat = DateFormat('EE, d MMMM');
   final thisMonthFormat = DateFormat('EE, d MMMM');
   final thisYearFormat = DateFormat('EE, d MMMM');
+  final imageSaveStates = Map<String, SaveState>();
 
   @override
   void initState() {
@@ -191,6 +192,8 @@ class _MessageListState extends State<MessageList> {
           msg: msg,
           matrixUriToUrl: widget.accountController.matrixUriToUrl,
           matrixUriToThumbnailUrl: widget.accountController.matrixUriToThumbnailUrl,
+          initialSaveState: imageSaveStates[event.event_id],
+          onSaveStateChanged: (s) => imageSaveStates[event.event_id] = s,
         );
       } else if (msg is TextMessage) {
         child = TextWidget(

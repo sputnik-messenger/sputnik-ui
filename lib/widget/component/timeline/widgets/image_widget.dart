@@ -32,6 +32,8 @@ class ImageWidget extends StatefulWidget {
   final Uri Function(Uri) matrixUriToUrl;
   final Uri Function(Uri) matrixUriToThumbnailUrl;
   final Future<File> Function(Uri url, String name) saveImage;
+  final void Function(SaveState saveState) onSaveStateChanged;
+  final SaveState initialSaveState;
 
   const ImageWidget({
     Key key,
@@ -40,15 +42,19 @@ class ImageWidget extends StatefulWidget {
     this.matrixUriToUrl,
     this.matrixUriToThumbnailUrl,
     this.saveImage,
+    this.initialSaveState,
+    this.onSaveStateChanged,
   }) : super(key: key);
 
   @override
-  _ImageWidgetState createState() => _ImageWidgetState();
+  _ImageWidgetState createState() => _ImageWidgetState(initialSaveState);
 }
 
 class _ImageWidgetState extends State<ImageWidget> {
-  SaveState saveState;
   final mediaCache = MediaCache.instance();
+  SaveState saveState;
+
+  _ImageWidgetState(this.saveState);
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +75,7 @@ class _ImageWidgetState extends State<ImageWidget> {
       }
     }
     if (thumbUrl == null) {
-      child = Text(widget.event.content.containsKey('body') ? widget.event.content['body'] : '');
+      child = Text(widget.event.content['body'] ?? '');
     } else {
       final theme = SputnikTheme.of(context);
 
@@ -94,6 +100,7 @@ class _ImageWidgetState extends State<ImageWidget> {
                     setState(() {
                       saveState = SaveState.start;
                     });
+                    widget.onSaveStateChanged(saveState);
                     SaveState result = SaveState.failed;
                     try {
                       File file = await widget.saveImage(fullUrl, name);
@@ -105,6 +112,7 @@ class _ImageWidgetState extends State<ImageWidget> {
                     setState(() {
                       saveState = result;
                     });
+                    widget.onSaveStateChanged(saveState);
                     if (result == SaveState.success) {
                       Scaffold.of(context).showSnackBar(SnackBar(
                         content: Text('Image saved! $name'),
