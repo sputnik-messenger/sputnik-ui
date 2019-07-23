@@ -144,8 +144,6 @@ class _LoginRouteState extends State<LoginRoute> {
                                               store: widget.matrixManager.matrixStore,
                                               child: ConversationListRoute(
                                                 accountController,
-                                                widget.fileSaver,
-                                                widget.conversationBackground,
                                               )),
                                         ));
                                     accountController.startContinuousSync();

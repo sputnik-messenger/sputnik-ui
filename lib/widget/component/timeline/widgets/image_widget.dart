@@ -18,6 +18,7 @@
 import 'dart:io';
 
 import 'package:sputnik_ui/cache/media_cache.dart';
+import 'package:sputnik_ui/config/global_config_widget.dart';
 import 'package:sputnik_ui/theme/sputnik_theme.dart';
 import 'package:sputnik_ui/tool/file_saver.dart';
 import 'package:sputnik_ui/widget/route/image_route.dart';
@@ -77,7 +78,7 @@ class _ImageWidgetState extends State<ImageWidget> {
     if (thumbUrl == null) {
       child = Text(widget.event.content['body'] ?? '');
     } else {
-      final theme = SputnikTheme.of(context);
+      final theme = GlobalConfig.of(context).sputnikThemeData;
 
       child = Stack(children: [
         ClipRRect(

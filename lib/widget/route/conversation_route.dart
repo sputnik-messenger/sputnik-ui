@@ -17,6 +17,7 @@
 
 import 'dart:io';
 
+import 'package:sputnik_ui/config/global_config_widget.dart';
 import 'package:sputnik_ui/tool/file_saver.dart';
 import 'package:sputnik_ui/widget/component/conversation_app_bar.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/audio_messag_overlay.dart';
@@ -39,8 +40,6 @@ class ConversationRoute extends StatefulWidget {
   final String title;
   final String subtitle;
   final Uri avatarUrl;
-  final FileSaver fileSaver;
-  final WidgetBuilder conversationBackground;
 
   const ConversationRoute({
     Key key,
@@ -49,8 +48,6 @@ class ConversationRoute extends StatefulWidget {
     this.title,
     this.subtitle,
     this.avatarUrl,
-    this.fileSaver,
-    this.conversationBackground,
   }) : super(key: key);
 
   @override
@@ -98,6 +95,7 @@ class _ConversationRouteState extends State<ConversationRoute> {
             tuple.item1.lastRelevantRoomEvent,
           );
 
+          final config = GlobalConfig.of(context);
           return Scaffold(
             appBar: ConversationAppBar(
               context,
@@ -108,7 +106,7 @@ class _ConversationRouteState extends State<ConversationRoute> {
             body: Stack(
               fit: StackFit.expand,
               children: [
-                widget.conversationBackground(context),
+                config.timelineBackground(context),
                 Column(
                   children: <Widget>[
                     Expanded(
@@ -121,7 +119,6 @@ class _ConversationRouteState extends State<ConversationRoute> {
                         await widget.accountController.sync();
                       },
                       model: timelineModel,
-                      fileSaver: widget.fileSaver,
                     )),
                     MessageInputBar(
                       audioMessageOverlayController: audioMessageOverlayController,

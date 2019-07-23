@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import 'package:sputnik_ui/config/global_config_widget.dart';
 import 'package:sputnik_ui/theme/sputnik_theme.dart';
 import 'package:sputnik_ui/widget/component/timeline/timeline.dart';
 import 'package:sputnik_ui/widget/component/timeline/widgets/bubble.dart';
@@ -79,6 +80,6 @@ class MessageItem extends StatelessWidget {
   }
 
   Color _bubbleColor(BuildContext context) {
-    return isMyMessage ? SputnikTheme.of(context).myMessageBubbleColor : Colors.white;
+    return isMyMessage ? GlobalConfig.of(context).sputnikThemeData.myMessageBubbleColor : Colors.white;
   }
 }

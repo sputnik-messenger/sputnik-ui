@@ -17,10 +17,21 @@
 
 import 'package:flutter/material.dart';
 
-abstract class SputnikThemeData {
-  ThemeData get materialThemeData;
-  Color get myMessageBubbleColor;
-  Color get successColor;
-  Color get warnColor;
-  Color get errorColor;
+import 'global_config_data.dart';
+
+class GlobalConfig extends InheritedWidget {
+  final GlobalConfigData config;
+
+  const GlobalConfig({
+    Key key,
+    @required this.config,
+    @required Widget child,
+  }) : super(key: key, child: child);
+
+  static GlobalConfigData of(BuildContext context) {
+    return (context.inheritFromWidgetOfExactType(GlobalConfig) as GlobalConfig).config;
+  }
+
+  @override
+  bool updateShouldNotify(GlobalConfig old) => false;
 }

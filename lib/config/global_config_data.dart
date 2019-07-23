@@ -15,12 +15,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import 'package:flutter/material.dart';
 
-abstract class SputnikThemeData {
-  ThemeData get materialThemeData;
-  Color get myMessageBubbleColor;
-  Color get successColor;
-  Color get warnColor;
-  Color get errorColor;
+import 'package:flutter/widgets.dart';
+import 'package:sputnik_ui/theme/sputnik_theme.dart';
+
+abstract class GlobalConfigData {
+  String get packageName;
+
+  String get title;
+
+  String get userAgent;
+
+  String get defaultDeviceName;
+
+  WidgetBuilder get loginScreenArtwork;
+
+  WidgetBuilder get loginScreenBackground;
+
+  SputnikThemeData get sputnikThemeData;
+
+  String get mediaFileDirectoryName;
+
+  WidgetBuilder get timelineBackground;
 }

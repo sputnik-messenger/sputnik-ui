@@ -18,6 +18,7 @@
 import 'dart:convert';
 
 import 'package:sputnik_ui/cache/media_cache.dart';
+import 'package:sputnik_ui/config/global_config_widget.dart';
 import 'package:sputnik_ui/tool/file_saver.dart';
 import 'package:sputnik_ui/tool/name_color_manager.dart';
 import 'package:sputnik_ui/tool/time_text_util.dart';
@@ -46,16 +47,8 @@ class MessageList extends StatefulWidget {
   final Future<void> Function() onRefreshLatest;
   final AccountController accountController;
   final TimelineModel model;
-  final FileSaver fileSaver;
 
-  const MessageList({
-    Key key,
-    this.onLoadPrevious,
-    this.onRefreshLatest,
-    this.accountController,
-    this.model,
-    this.fileSaver,
-  }) : super(key: key);
+  const MessageList({Key key, this.onLoadPrevious, this.onRefreshLatest, this.accountController, this.model}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -115,6 +108,9 @@ class _MessageListState extends State<MessageList> {
   Widget build(BuildContext context) {
     widget.model.updateIndexMap(expand: expandedGroups);
 
+    final config = GlobalConfig.of(context);
+    final fileSaver = FileSaver(config.mediaFileDirectoryName);
+
     return RefreshIndicator(
       child: ListView.builder(
         controller: _controller,
@@ -124,7 +120,7 @@ class _MessageListState extends State<MessageList> {
         itemBuilder: (context, i) {
           Widget item;
           if (i < widget.model.length) {
-            item = _buildMessageItem(widget.model, i);
+            item = _buildMessageItem(fileSaver, widget.model, i);
           } else {
             item = Container(
               alignment: Alignment.center,
@@ -158,7 +154,7 @@ class _MessageListState extends State<MessageList> {
     ));
   }
 
-  Widget _buildMessageItem(TimelineModel model, int index) {
+  Widget _buildMessageItem(FileSaver fileSaver, TimelineModel model, int index) {
     if (index == 0) {
       debugPrint('setting readmarker');
       final latestEventId = model.latestRoomEvent?.event_id;
@@ -187,7 +183,7 @@ class _MessageListState extends State<MessageList> {
         );
       } else if (msg is ImageMessage) {
         child = ImageWidget(
-          saveImage: widget.fileSaver.saveImage,
+          saveImage: fileSaver.saveImage,
           event: event,
           msg: msg,
           matrixUriToUrl: widget.accountController.matrixUriToUrl,
@@ -237,7 +233,10 @@ class _MessageListState extends State<MessageList> {
 
       final reactions = model.reactions.getReactionsByKeyTo(event.event_id);
       if (reactions != null && reactions.isNotEmpty) {
-        final reactionWidgets = reactions.asMap().entries.map(
+        final reactionWidgets = reactions
+            .asMap()
+            .entries
+            .map(
               (kv) => FittedBox(
                 fit: BoxFit.fill,
                 child: InkWell(
@@ -251,7 +250,9 @@ class _MessageListState extends State<MessageList> {
                               ),
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
-                                children: kv.value.map((e) => Text('${model.members[e.roomEvent.sender]?.displayName?.value ?? e.roomEvent.sender}')).toList(),
+                                children: kv.value
+                                    .map((e) => Text('${model.members[e.roomEvent.sender]?.displayName?.value ?? e.roomEvent.sender}'))
+                                    .toList(),
                               ),
                             ))
                   },
