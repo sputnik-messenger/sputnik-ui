@@ -236,7 +236,7 @@ class _MessageListState extends State<MessageList> {
       }
 
       final reactions = model.reactions.getReactionsByKeyTo(event.event_id);
-      if (reactions != null) {
+      if (reactions != null && reactions.isNotEmpty) {
         final reactionWidgets = reactions.asMap().entries.map(
               (kv) => FittedBox(
                 fit: BoxFit.fill,
