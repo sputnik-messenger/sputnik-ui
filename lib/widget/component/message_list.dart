@@ -235,10 +235,9 @@ class _MessageListState extends State<MessageList> {
         );
       }
 
-      final reactions = model.reactions[event.event_id];
+      final reactions = model.reactions.getReactionsByKeyTo(event.event_id);
       if (reactions != null) {
-        final reactionWidgets = reactions.entries
-            .map(
+        final reactionWidgets = reactions.asMap().entries.map(
               (kv) => FittedBox(
                 fit: BoxFit.fill,
                 child: InkWell(
@@ -252,7 +251,7 @@ class _MessageListState extends State<MessageList> {
                               ),
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
-                                children: kv.value.map((e) => Text('${model.members[e.sender]?.displayName?.value ?? e.sender}')).toList(),
+                                children: kv.value.map((e) => Text('${model.members[e.roomEvent.sender]?.displayName?.value ?? e.roomEvent.sender}')).toList(),
                               ),
                             ))
                   },

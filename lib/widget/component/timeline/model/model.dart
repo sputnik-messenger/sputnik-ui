@@ -66,7 +66,7 @@ class TimelineModel {
   final indexMap = Map<int, Tuple2<int, int>>();
   final List<TimelineEntry> entries;
   final Map<String, UserSummary> members;
-  final BuiltMap<String, BuiltMap<String, BuiltList<RoomEvent>>> reactions;
+  final Reactions reactions;
   final RoomEvent latestRoomEvent;
 
   TimelineModel(
