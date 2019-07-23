@@ -31,6 +31,7 @@ class LoginRoute extends StatefulWidget {
   final WidgetBuilder background;
   final FileSaver fileSaver;
   final String defaultDeviceName;
+  final WidgetBuilder conversationBackground;
 
   const LoginRoute({
     Key key,
@@ -39,6 +40,7 @@ class LoginRoute extends StatefulWidget {
     this.background,
     this.fileSaver,
     this.defaultDeviceName,
+    this.conversationBackground,
   }) : super(key: key);
 
   @override
@@ -143,6 +145,7 @@ class _LoginRouteState extends State<LoginRoute> {
                                               child: ConversationListRoute(
                                                 accountController,
                                                 widget.fileSaver,
+                                                widget.conversationBackground,
                                               )),
                                         ));
                                     accountController.startContinuousSync();

@@ -28,10 +28,12 @@ import 'conversation_route.dart';
 class ConversationListRoute extends StatelessWidget {
   final AccountController accountController;
   final FileSaver fileSaver;
+  final WidgetBuilder conversationBackground;
 
   ConversationListRoute(
     this.accountController,
     this.fileSaver,
+    this.conversationBackground,
   );
 
   @override
@@ -63,6 +65,7 @@ class ConversationListRoute extends StatelessWidget {
                 nameAvatar.item2,
                 tuple.item2,
                 fileSaver,
+                conversationBackground,
               );
             },
             itemCount: tuple.item1.length,
@@ -127,6 +130,7 @@ Widget _itemFromRoom(
   Uri avatarUrl,
   Map<String, UserSummary> heroes,
   FileSaver fileSaver,
+  WidgetBuilder conversationBackground,
 ) {
   return ConversationListItem(
     roomSummary,
@@ -142,13 +146,13 @@ Widget _itemFromRoom(
           builder: (context) => StoreProvider<SputnikAppState>(
             store: accountController.matrixStore,
             child: ConversationRoute(
-              accountController: accountController,
-              roomId: roomSummary.roomId,
-              avatarUrl: avatarUrl,
-              title: roomName,
-              subtitle: roomSummary.roomStateValues.topic?.content?.topic,
-              fileSaver: fileSaver,
-            ),
+                accountController: accountController,
+                roomId: roomSummary.roomId,
+                avatarUrl: avatarUrl,
+                title: roomName,
+                subtitle: roomSummary.roomStateValues.topic?.content?.topic,
+                fileSaver: fileSaver,
+                conversationBackground: conversationBackground),
           ),
         ),
       );

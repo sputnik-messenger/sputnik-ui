@@ -40,6 +40,7 @@ class ConversationRoute extends StatefulWidget {
   final String subtitle;
   final Uri avatarUrl;
   final FileSaver fileSaver;
+  final WidgetBuilder conversationBackground;
 
   const ConversationRoute({
     Key key,
@@ -49,6 +50,7 @@ class ConversationRoute extends StatefulWidget {
     this.subtitle,
     this.avatarUrl,
     this.fileSaver,
+    this.conversationBackground,
   }) : super(key: key);
 
   @override
@@ -106,6 +108,7 @@ class _ConversationRouteState extends State<ConversationRoute> {
             body: Stack(
               fit: StackFit.expand,
               children: [
+                widget.conversationBackground(context),
                 Column(
                   children: <Widget>[
                     Expanded(
