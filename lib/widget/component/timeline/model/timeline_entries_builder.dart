@@ -30,11 +30,11 @@ class TimelineEntriesBuilder {
     final sorted = events.toList()..sort((a, b) => a.event.origin_server_ts.compareTo(b.event.origin_server_ts));
 
     for (final event in sorted) {
+      _addDateHeaderIfNew(event);
       if (event.event.isStateEvent) {
         _groupedEvents.add(EventEntry(event.event.event_id, event));
       } else {
         _closeGroup();
-        _addDateHeaderIfNew(event);
         _timelineEntries.add(EventEntry(event.event.event_id, event));
       }
     }
@@ -70,10 +70,11 @@ class TimelineEntriesBuilder {
     }
   }
 
-  _addDateHeaderIfNew(TimelineEventState event) {
+  void _addDateHeaderIfNew(TimelineEventState event) {
     final ts = event.event.origin_server_ts;
     final midnight = _midnightFor(ts);
     if (dates.add(midnight.millisecondsSinceEpoch)) {
+      _closeGroup();
       _timelineEntries.add(
         DateSection(ts.toString(), midnight),
       );
@@ -82,9 +83,8 @@ class TimelineEntriesBuilder {
 
   _closeGroup() {
     if (_groupedEvents.isNotEmpty) {
-      _addDateHeaderIfNew(_groupedEvents.last.event);
       _timelineEntries
-          .add(GroupEntry(_groupedEvents.map((e) => e.event.event.event_id.hashCode).reduce((a, b) => (a + b)).toString(), _groupedEvents));
+          .add(GroupEntry(_groupedEvents.map((e) => e.event.event.event_id.hashCode).reduce((a, b) => (a + b)).toString(), _groupedEvents.reversed));
       _groupedEvents.clear();
     }
   }
