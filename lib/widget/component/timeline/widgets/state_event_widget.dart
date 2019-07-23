@@ -77,7 +77,9 @@ class StateEventWidget extends StatelessWidget {
         final content = util.stateEventFrom<MemberContent>(event).content;
         switch (content.membership) {
           case Membership.join:
-            final prev = event.prev_content != null ? MemberContent.fromJson(event.prev_content) : null;
+            final prev = event.prev_content != null
+                ? MemberContent.fromJson(event.prev_content)
+                : event.unsigned.containsKey('prev_content') ? MemberContent.fromJson(event.unsigned['prev_content']) : null;
 
             if (prev != null) {
               if (prev.displayname != content.displayname && prev.avatar_url != content.avatar_url) {
