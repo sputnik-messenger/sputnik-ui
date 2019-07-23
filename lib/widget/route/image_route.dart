@@ -20,11 +20,9 @@ import 'dart:io';
 import 'package:sputnik_ui/cache/media_cache.dart';
 import 'package:flutter/material.dart';
 
-class ImageRoute extends StatelessWidget {
+class ImageRoute extends StatefulWidget {
   final Uri fullUrl;
   final Uri thumbUrl;
-
-  MediaCache mediaCache = MediaCache.instance();
 
   ImageRoute({
     Key key,
@@ -33,24 +31,91 @@ class ImageRoute extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _ImageRouteState createState() => _ImageRouteState();
+}
+
+class _ImageRouteState extends State<ImageRoute> {
+  MediaCache mediaCache = MediaCache.instance();
+
+  double baseScale = 1.0;
+  double relativeScale = 1.0;
+  double absoluteScale = 1.0;
+  Offset startOffset = Offset.zero;
+  Offset baseOffset = Offset.zero;
+  Offset relativeOffset = Offset.zero;
+  Offset absoluteOffset = Offset.zero;
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(fullUrl.path.split('/').last)),
+      appBar: AppBar(title: Text(widget.fullUrl.path.split('/').last)),
       backgroundColor: Colors.grey[800],
-      body: Center(
-        child: FutureBuilder<File>(
-            future: mediaCache.getSingleFile(fullUrl.toString()),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Image.file(snapshot.data),
-                );
-              } else {
-                return CircularProgressIndicator();
-              }
-            }),
+      body: FractionallySizedBox(
+        heightFactor: 1.0,
+        widthFactor: 1.0,
+        child: GestureDetector(
+          onScaleUpdate: _onScaleUpdate,
+          onScaleEnd: _onScaleEnd,
+          onScaleStart: _onScaleStart,
+          onTap: _onTap,
+          child: Container(
+            color: Colors.grey[800],
+            child: FutureBuilder<File>(
+                future: mediaCache.getSingleFile(widget.fullUrl.toString()),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Transform.translate(
+                        offset: absoluteOffset,
+                        child: Transform.scale(
+                          scale: absoluteScale,
+                          child: Image.file(
+                            snapshot.data,
+                          ),
+                        ),
+                      ),
+                    );
+                  } else {
+                    return CircularProgressIndicator();
+                  }
+                }),
+          ),
+        ),
       ),
     );
+  }
+
+  void _onScaleStart(ScaleStartDetails details) {
+    startOffset = details.localFocalPoint;
+  }
+  void _onScaleUpdate(ScaleUpdateDetails details) {
+    setState(() {
+      if (details.scale != 1.0) {
+        relativeScale = details.scale;
+        absoluteScale = (baseScale * relativeScale).clamp(1.0, 5.0);
+      }
+        relativeOffset = details.localFocalPoint - startOffset;
+        absoluteOffset = (baseOffset + relativeOffset);
+    });
+  }
+
+  void _onScaleEnd(ScaleEndDetails details) {
+    setState(() {
+      baseScale = absoluteScale;
+      relativeScale = 1.0;
+      baseOffset = absoluteOffset;
+    });
+  }
+
+  void _onTap() {
+    setState(() {
+      relativeOffset = Offset.zero;
+      absoluteOffset = Offset.zero;
+      baseOffset = Offset.zero;
+      baseScale = 1.0;
+      relativeScale = 1.0;
+      absoluteScale = 1.0;
+    });
   }
 }
