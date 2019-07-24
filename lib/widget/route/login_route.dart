@@ -17,6 +17,8 @@
 
 import 'dart:io';
 
+import 'package:matrix_rest_api/matrix_client_api_r0.dart' hide State;
+import 'package:matrix_rest_api/matrix_identity_service_api_v1.dart';
 import 'package:sputnik_matrix_sdk/matrix_manager/matrix_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -150,7 +152,11 @@ class _LoginRouteState extends State<LoginRoute> {
                                   } catch (e, s) {
                                     debugPrint(s.toString());
                                     setState(() {
-                                      error = e.toString();
+                                      if (e is Response) {
+                                        error = e.body.toString();
+                                      } else {
+                                        error = e.toString();
+                                      }
                                     });
                                   }
                                   setState(() {
