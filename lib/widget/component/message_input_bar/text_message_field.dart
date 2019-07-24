@@ -52,6 +52,7 @@ class TextMessageFieldState extends State<TextMessageField> {
                 hintText: 'Message',
                 border: InputBorder.none,
               ),
+              enableInteractiveSelection: true,
               controller: widget.controller,
             ),
           ),
