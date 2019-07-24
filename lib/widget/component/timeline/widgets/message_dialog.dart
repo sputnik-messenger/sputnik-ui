@@ -34,14 +34,14 @@ class MessageDialog extends SimpleDialog {
     ];
 
     if (redact != null) {
-      actions.add(_dialogOption(context, 'delete', Icons.cancel, redact));
+      actions.add(_dialogOption(context, 'delete', Icons.delete, redact));
     }
     if (copyText != null) {
       actions.add(_dialogOption(context, 'copy text', Icons.content_copy, () => _copyToClipboard(context, copyText)));
       actions.add(_dialogOption(context, 'share', Icons.share, () => Share.share(copyText)));
     }
     if (copyUrl != null) {
-      actions.add(_dialogOption(context, 'copy url', Icons.content_copy, () => _copyToClipboard(context, copyUrl)));
+      actions.add(_dialogOption(context, 'copy link', Icons.content_copy, () => _copyToClipboard(context, copyUrl)));
       actions.add(_dialogOption(context, 'share', Icons.share, () => Share.share(copyUrl)));
     }
 

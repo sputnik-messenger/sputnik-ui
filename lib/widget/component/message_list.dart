@@ -89,7 +89,11 @@ class _MessageListState extends State<MessageList> {
 
   @override
   dispose() {
-    audioPlayer.dispose();
+    if (audioPlayer.state != AudioPlayerState.STOPPED) {
+      audioPlayer.stop().then((_)=> audioPlayer.dispose());
+    } else {
+      audioPlayer.dispose();
+    }
     super.dispose();
   }
 
