@@ -283,19 +283,22 @@ class _MessageListState extends State<MessageList> {
       }
 
       final isMyMessage = model.userId == event.sender;
+      final isRedacted = event.unsigned.containsKey('redacted_because');
       final canRedact = !event.isRedaction && !event.isStateEvent && isMyMessage;
 
-      onLongPress = (Widget item) => showDialog(
-            context: context,
-            builder: (context) => MessageDialog.fromWidget(
-              context,
-              event,
-              item,
-              redact: canRedact ? () => widget.accountController.redactEvent(model.roomId, event.event_id) : null,
-              copyText: !(msg is ImageMessage) && !event.isRedaction && !event.isStateEvent ? msg.body : null,
-              copyUrl: msg is ImageMessage ? widget.accountController.matrixUriToUrl(Uri.parse(msg.url)).toString() : null,
-            ),
-          );
+      onLongPress = isRedacted
+          ? (_) => {}
+          : (Widget item) => showDialog(
+                context: context,
+                builder: (context) => MessageDialog.fromWidget(
+                  context,
+                  event,
+                  item,
+                  redact: canRedact ? () => widget.accountController.redactEvent(model.roomId, event.event_id) : null,
+                  copyText: !(msg is ImageMessage) && !event.isRedaction && !event.isStateEvent ? msg.body : null,
+                  copyUrl: msg is ImageMessage ? widget.accountController.matrixUriToUrl(Uri.parse(msg.url)).toString() : null,
+                ),
+              );
 
       return MessageItem(
         showSenderName: model.members.length > 2,

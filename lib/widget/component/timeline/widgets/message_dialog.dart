@@ -34,7 +34,7 @@ class MessageDialog extends SimpleDialog {
     ];
 
     if (redact != null) {
-      actions.add(_dialogOption(context, 'redact', Icons.cancel, redact));
+      actions.add(_dialogOption(context, 'delete', Icons.cancel, redact));
     }
     if (copyText != null) {
       actions.add(_dialogOption(context, 'copy text', Icons.content_copy, () => _copyToClipboard(context, copyText)));
