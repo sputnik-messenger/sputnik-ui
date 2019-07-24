@@ -16,7 +16,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import 'package:sputnik_ui/config/global_config_widget.dart';
-import 'package:sputnik_ui/theme/sputnik_theme.dart';
 import 'package:sputnik_ui/widget/component/timeline/timeline.dart';
 import 'package:sputnik_ui/widget/component/timeline/widgets/bubble.dart';
 import 'package:matrix_rest_api/matrix_client_api_r0.dart';
@@ -33,7 +32,7 @@ class MessageItem extends StatelessWidget {
   final String senderName;
   final Widget child;
   final VoidCallback onTap;
-  final VoidCallback onLongPress;
+  final void Function(Widget) onLongPress;
 
   MessageItem({
     this.child,
@@ -56,7 +55,7 @@ class MessageItem extends StatelessWidget {
 
     return TimelineRow(
       onTap: onTap,
-      onLongPress: onLongPress,
+      onLongPress: () => onLongPress(this),
       align: roomEvent.isStateEvent ? TimelineAlign.center : isMyMessage ? TimelineAlign.end : TimelineAlign.start,
       child: Opacity(
         opacity: isGhost ? 0.4 : 1,

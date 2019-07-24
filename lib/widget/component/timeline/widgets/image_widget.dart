@@ -24,6 +24,7 @@ import 'package:sputnik_ui/tool/file_saver.dart';
 import 'package:sputnik_ui/widget/route/image_route.dart';
 import 'package:matrix_rest_api/matrix_client_api_r0.dart' hide State;
 import 'package:flutter/material.dart';
+import 'package:open_file/open_file.dart';
 
 enum SaveState { start, success, failed }
 
@@ -103,8 +104,9 @@ class _ImageWidgetState extends State<ImageWidget> {
                     });
                     widget.onSaveStateChanged(saveState);
                     SaveState result = SaveState.failed;
+                    File file;
                     try {
-                      File file = await widget.saveImage(fullUrl, name);
+                      file = await widget.saveImage(fullUrl, name);
                       bool exists = await file.exists();
                       result = exists ? SaveState.success : SaveState.failed;
                     } catch (e, stack) {
@@ -117,7 +119,15 @@ class _ImageWidgetState extends State<ImageWidget> {
                     widget.onSaveStateChanged(saveState);
                     if (result == SaveState.success) {
                       Scaffold.of(context).showSnackBar(SnackBar(
-                        content: Text('Image saved! $name'),
+                        content: Text('Saved to ${file.path}'),
+                        action: file == null
+                            ? null
+                            : SnackBarAction(
+                                textColor: Colors.white,
+                                label: 'Open',
+                                onPressed: () {
+                                  OpenFile.open(file.path);
+                                }),
                         backgroundColor: theme.successColor,
                       ));
                     } else {

@@ -28,6 +28,7 @@ import 'package:sputnik_ui/widget/component/timeline/widgets/bubble.dart';
 import 'package:sputnik_ui/widget/component/timeline/widgets/emote_widget.dart';
 import 'package:sputnik_ui/widget/component/timeline/widgets/encrypted_widget.dart';
 import 'package:sputnik_ui/widget/component/timeline/widgets/image_widget.dart';
+import 'package:sputnik_ui/widget/component/timeline/widgets/message_dialog.dart';
 import 'package:sputnik_ui/widget/component/timeline/widgets/notice_widget.dart';
 import 'package:sputnik_ui/widget/component/timeline/widgets/state_event_widget.dart';
 import 'package:sputnik_matrix_sdk/matrix_manager/account_controller.dart';
@@ -146,14 +147,6 @@ class _MessageListState extends State<MessageList> {
     );
   }
 
-  void _copyToClipboard(BuildContext context, String text) async {
-    await Clipboard.setData(new ClipboardData(text: text));
-    Scaffold.of(context).showSnackBar(SnackBar(
-      content: Text('copied to clipboard'),
-      duration: const Duration(milliseconds: 600),
-    ));
-  }
-
   Widget _buildMessageItem(FileSaver fileSaver, TimelineModel model, int index) {
     if (index == 0) {
       debugPrint('setting readmarker');
@@ -166,7 +159,7 @@ class _MessageListState extends State<MessageList> {
 
     Widget child;
     VoidCallback onTap;
-    VoidCallback onLongPress;
+    void Function(Widget widget) onLongPress;
     if (entry is EventEntry) {
       final event = entry.event.event;
 
@@ -195,7 +188,6 @@ class _MessageListState extends State<MessageList> {
         child = TextWidget(
           msg: msg,
         );
-        onLongPress = () => _copyToClipboard(context, msg.body);
       } else if (msg is EmoteMessage) {
         bubbleType = BubbleType.Emote;
         child = EmoteWidget(
@@ -207,7 +199,6 @@ class _MessageListState extends State<MessageList> {
         child = NoticeWidget(
           msg: msg,
         );
-        onLongPress = () => _copyToClipboard(context, msg.body);
       } else if (msg is AudioMessage) {
         child = AudioWidget(
           audioPlayer: audioPlayer,
@@ -221,7 +212,6 @@ class _MessageListState extends State<MessageList> {
       } else {
         final jsonText = jsonEncode(event);
         child = Text(jsonText);
-        onLongPress = () => _copyToClipboard(context, jsonText);
       }
       if (event.unsigned.containsKey('redacted_because')) {
         child = child = Text(
@@ -292,9 +282,24 @@ class _MessageListState extends State<MessageList> {
         );
       }
 
+      final isMyMessage = model.userId == event.sender;
+      final canRedact = !event.isRedaction && !event.isStateEvent && isMyMessage;
+
+      onLongPress = (Widget item) => showDialog(
+            context: context,
+            builder: (context) => MessageDialog.fromWidget(
+              context,
+              event,
+              item,
+              redact: canRedact ? () => widget.accountController.redactEvent(model.roomId, event.event_id) : null,
+              copyText: !(msg is ImageMessage) && !event.isRedaction && !event.isStateEvent ? msg.body : null,
+              copyUrl: msg is ImageMessage ? widget.accountController.matrixUriToUrl(Uri.parse(msg.url)).toString() : null,
+            ),
+          );
+
       return MessageItem(
         showSenderName: model.members.length > 2,
-        isMyMessage: model.userId == event.sender,
+        isMyMessage: isMyMessage,
         bubbleType: bubbleType,
         isFollowUp: entry.isFollowing,
         hasFollower: entry.hasFollower,
