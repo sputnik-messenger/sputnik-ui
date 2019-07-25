@@ -182,7 +182,7 @@ class _ImageWidgetState extends State<ImageWidget> {
                     children: <Widget>[
                       AnimatedOpacity(
                         opacity: imageOpacity == 1 ? 0 : loadingOpacity,
-                        curve: (imageOpacity == 1 ? 0 : loadingOpacity) == 0 ? Curves.easeOut : Curves.easeIn,
+                        curve: (imageOpacity == 1 ? 0 : loadingOpacity) == 0 ? Curves.linear : Curves.easeIn,
                         duration: Duration(milliseconds: (1500)),
                         child: FractionallySizedBox(
                           widthFactor: 1,
