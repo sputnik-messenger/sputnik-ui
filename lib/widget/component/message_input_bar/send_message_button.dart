@@ -26,8 +26,8 @@ class SendMessageButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       onPressed: this.onPressed,
-      iconSize: 35,
       tooltip: 'Send message',
+      iconSize: 40,
       icon: Icon(Icons.send, color: Theme.of(context).accentColor),
     );
   }

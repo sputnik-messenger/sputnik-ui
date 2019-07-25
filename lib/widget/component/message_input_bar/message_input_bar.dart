@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import 'package:sputnik_ui/widget/component/message_input_bar/record_animation.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/send_message_button.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/text_message_field.dart';
@@ -59,7 +58,7 @@ class MessageInputBarState extends State<MessageInputBar> with SingleTickerProvi
   void initState() {
     textEditingController.addListener(() {
       setState(() {
-        readyToSend = textEditingController.text.length > 0;
+        readyToSend = textEditingController.text.trim().length > 0;
         if (readyToSend) {
           inputMode = InputMode.Text;
         } else {
@@ -133,13 +132,13 @@ class MessageInputBarState extends State<MessageInputBar> with SingleTickerProvi
                 offset: Offset(-75, -75),
               ),
               feedbackOffset: Offset(0, 0),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Icon(
+              child: IconButton(
+                icon: Icon(
                   Icons.mic,
-                  color: inputMode == InputMode.Audio ? Colors.red : null,
-                  size: 40,
+                  color: Colors.black,
                 ),
+                iconSize: 40,
+                onPressed: null,
               ),
             ),
           ),
