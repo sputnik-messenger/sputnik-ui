@@ -30,6 +30,8 @@ abstract class GlobalConfigData {
 
   WidgetBuilder get loginScreenArtwork;
 
+  WidgetBuilder getLoadingImageIndicator({String path});
+
   WidgetBuilder get loginScreenBackground;
 
   SputnikThemeData get sputnikThemeData;

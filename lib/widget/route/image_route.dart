@@ -19,6 +19,7 @@ import 'dart:io';
 
 import 'package:sputnik_ui/cache/media_cache.dart';
 import 'package:flutter/material.dart';
+import 'package:sputnik_ui/config/global_config_widget.dart';
 
 class ImageRoute extends StatefulWidget {
   final Uri fullUrl;
@@ -45,58 +46,71 @@ class _ImageRouteState extends State<ImageRoute> {
   Offset relativeOffset = Offset.zero;
   Offset absoluteOffset = Offset.zero;
 
+  Future<File> fileFuture;
+
+  @override
+  void initState() {
+    fileFuture = mediaCache.getSingleFile(widget.fullUrl.toString());
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final config = GlobalConfig.of(context);
+
     return Scaffold(
       appBar: AppBar(title: Text(widget.fullUrl.path.split('/').last)),
-      backgroundColor: Colors.grey[800],
-      body: FractionallySizedBox(
-        heightFactor: 1.0,
-        widthFactor: 1.0,
-        child: GestureDetector(
-          onScaleUpdate: _onScaleUpdate,
-          onScaleEnd: _onScaleEnd,
-          onScaleStart: _onScaleStart,
-          onTap: _onTap,
-          child: Container(
-            color: Colors.grey[800],
-            child: FutureBuilder<File>(
-                future: mediaCache.getSingleFile(widget.fullUrl.toString()),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Transform.translate(
-                        offset: absoluteOffset,
-                        child: Transform.scale(
-                          scale: absoluteScale,
-                          child: Image.file(
-                            snapshot.data,
-                          ),
+      backgroundColor: config.sputnikThemeData.materialThemeData.primaryColorDark,
+      body: FutureBuilder<File>(
+          future: fileFuture,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return GestureDetector(
+                onScaleUpdate: _onScaleUpdate,
+                onScaleEnd: _onScaleEnd,
+                onScaleStart: _onScaleStart,
+                onTap: _onTap,
+                child: FractionallySizedBox(
+                  widthFactor: 1,
+                  heightFactor: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Transform.translate(
+                      offset: absoluteOffset,
+                      child: Transform.scale(
+                        scale: absoluteScale,
+                        child: Image.file(
+                          snapshot.data,
                         ),
                       ),
-                    );
-                  } else {
-                    return CircularProgressIndicator();
-                  }
-                }),
-          ),
-        ),
-      ),
+                    ),
+                  ),
+                ),
+              );
+            } else {
+              final loading = config.getLoadingImageIndicator(path: widget.fullUrl.toString());
+              return Container(
+                alignment: Alignment(0, 0),
+                child: FractionallySizedBox(widthFactor: 1, child: AspectRatio(aspectRatio: 1, child: loading(context))),
+                key: Key('load'),
+              );
+            }
+          }),
     );
   }
 
   void _onScaleStart(ScaleStartDetails details) {
     startOffset = details.localFocalPoint;
   }
+
   void _onScaleUpdate(ScaleUpdateDetails details) {
     setState(() {
       if (details.scale != 1.0) {
         relativeScale = details.scale;
         absoluteScale = (baseScale * relativeScale).clamp(1.0, 5.0);
       }
-        relativeOffset = details.localFocalPoint - startOffset;
-        absoluteOffset = (baseOffset + relativeOffset);
+      relativeOffset = details.localFocalPoint - startOffset;
+      absoluteOffset = (baseOffset + relativeOffset);
     });
   }
 

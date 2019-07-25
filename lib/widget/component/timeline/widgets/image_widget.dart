@@ -55,17 +55,21 @@ class ImageWidget extends StatefulWidget {
 class _ImageWidgetState extends State<ImageWidget> {
   final mediaCache = MediaCache.instance();
   SaveState saveState;
+  double loadingOpacity = 0;
+  double imageOpacity = 0;
 
   _ImageWidgetState(this.saveState);
 
+  Future<File> fileFuture;
+  Uri fullUrl;
+  Uri thumbUrl;
+  double ratio = 1;
+
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
+
     final msg = widget.msg;
-    Widget child;
-
-    Uri fullUrl;
-    Uri thumbUrl;
-
     if (msg.info?.thumbnail_url != null && msg.info.thumbnail_url.isNotEmpty) {
       thumbUrl = widget.matrixUriToUrl(Uri.parse(msg.info.thumbnail_url));
     }
@@ -76,10 +80,37 @@ class _ImageWidgetState extends State<ImageWidget> {
         thumbUrl = widget.matrixUriToThumbnailUrl(mxcUri);
       }
     }
+
+    final w = msg.info?.w;
+    final h = msg.info?.h;
+    if (w != null && h != null) {
+      ratio = w / h;
+    }
+
+    mediaCache.getFileFromCache(thumbUrl.toString()).then((i) => i == null && mounted ? setState(() => loadingOpacity = 1) : null);
+
+    fileFuture = mediaCache.getSingleFile(thumbUrl.toString()).then((f) {
+      if (mounted) {
+        setState(() {
+          imageOpacity = 1;
+        });
+      } else {
+        imageOpacity = 1;
+      }
+      return f;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final msg = widget.msg;
+    Widget child;
+
     if (thumbUrl == null) {
       child = Text(widget.event.content['body'] ?? '');
     } else {
-      final theme = GlobalConfig.of(context).sputnikThemeData;
+      final config = GlobalConfig.of(context);
+      final theme = config.sputnikThemeData;
 
       child = Stack(children: [
         ClipRRect(
@@ -137,23 +168,52 @@ class _ImageWidgetState extends State<ImageWidget> {
                       ));
                     }
                   },
-                  child: FutureBuilder(
-                    future: mediaCache.getSingleFile(thumbUrl.toString()),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        return Image.file(
-                          snapshot.data,
-                          fit: BoxFit.fitWidth,
-                        );
-                      } else {
-                        return Container(
-                          width: 50,
-                          height: 50,
-                          color: Colors.grey[100].withOpacity(0.4),
-                          child: CircularProgressIndicator(),
-                        );
-                      }
-                    },
+                  child: Stack(
+                    alignment: Alignment(0, 0),
+                    fit: StackFit.expand,
+                    children: <Widget>[
+                      AnimatedOpacity(
+                        opacity: loadingOpacity,
+                        duration: Duration(milliseconds: 1000),
+                        curve: Curves.easeIn,
+                        child: FractionallySizedBox(
+                          widthFactor: 1,
+                          heightFactor: 1,
+                          child: Container(
+                            color: theme.materialThemeData.primaryColorDark,
+                          ),
+                        ),
+                      ),
+                      FutureBuilder(
+                        future: fileFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return AnimatedOpacity(
+                              opacity: imageOpacity,
+                              curve: Curves.easeIn,
+                              duration: Duration(milliseconds: 200),
+                              child: Image.file(
+                                snapshot.data,
+                                fit: ratio > 1.5 ? BoxFit.fitWidth : ratio < 0.5 ? BoxFit.fitHeight : BoxFit.cover,
+                              ),
+                            );
+                          } else {
+                            debugPrint('build indicator');
+                            Widget loadingIndicator = Container(
+                              key: Key(fullUrl.toString()),
+                              child: config.getLoadingImageIndicator(path: fullUrl.toString())(context),
+                            );
+
+                            return AnimatedOpacity(
+                              opacity: loadingOpacity,
+                              curve: Curves.easeIn,
+                              duration: Duration(milliseconds: 1000),
+                              child: loadingIndicator,
+                            );
+                          }
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),
