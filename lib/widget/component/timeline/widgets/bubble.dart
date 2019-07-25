@@ -17,7 +17,7 @@
 
 import 'package:flutter/material.dart';
 
-enum BubbleType { Speech, Notice, Emote }
+enum BubbleType { Speech, Notice, Emote, None }
 enum BubbleCornerSide { start, end, none }
 
 class Bubble extends StatelessWidget {
@@ -28,16 +28,18 @@ class Bubble extends StatelessWidget {
   final Color color;
   final Widget child;
   final Widget header;
+  final bool alignToCornerSide;
 
   const Bubble({
     Key key,
-    this.cornerSide,
+    this.cornerSide = BubbleCornerSide.start,
     this.hasFollower,
     this.isFollowing,
     this.bubbleType,
     this.color,
     this.child,
     this.header,
+    this.alignToCornerSide = true,
   }) : super(key: key);
 
   @override
@@ -46,7 +48,7 @@ class Bubble extends StatelessWidget {
       padding: EdgeInsets.all(bubbleType == BubbleType.Speech ? 16 : 8),
       margin: _bubbleMargin(),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: alignToCornerSide ? _alignForCornerSide(cornerSide) : CrossAxisAlignment.start,
         children: <Widget>[
           Visibility(
             visible: header != null && !isFollowing,
@@ -59,7 +61,7 @@ class Bubble extends StatelessWidget {
         ],
       ),
       decoration: BoxDecoration(
-        color: color,
+        color: bubbleType == BubbleType.None ? null : color,
         borderRadius: _boredRadius(),
       ),
     );
@@ -112,8 +114,29 @@ class Bubble extends StatelessWidget {
           bottomRight: Radius.circular(belowCorner),
         );
         break;
+      case BubbleType.None:
+        borderRadius = null;
+        break;
     }
     return borderRadius;
+  }
+
+  _alignForCornerSide(BubbleCornerSide cornerSide) {
+    CrossAxisAlignment align;
+
+    switch (cornerSide) {
+      case BubbleCornerSide.start:
+        align = CrossAxisAlignment.start;
+        break;
+      case BubbleCornerSide.end:
+        align = CrossAxisAlignment.end;
+        break;
+      case BubbleCornerSide.none:
+        align = CrossAxisAlignment.center;
+        break;
+    }
+
+    return align;
   }
 
   EdgeInsets _bubbleMargin() {

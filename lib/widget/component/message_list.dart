@@ -90,7 +90,7 @@ class _MessageListState extends State<MessageList> {
   @override
   dispose() {
     if (audioPlayer.state != AudioPlayerState.STOPPED) {
-      audioPlayer.stop().then((_)=> audioPlayer.dispose());
+      audioPlayer.stop().then((_) => audioPlayer.dispose());
     } else {
       audioPlayer.dispose();
     }
@@ -168,7 +168,10 @@ class _MessageListState extends State<MessageList> {
       final event = entry.event.event;
 
       BubbleType bubbleType = BubbleType.Speech;
-      final msg = MessageContentMapper.typedContentFrom(event.content);
+
+      var isSticker = event.type == 'm.sticker';
+      var msg = MessageContentMapper.typedContentFrom(event.content);
+
       final senderName = model.displayNameFor(event.sender);
       if (event.isStateEvent) {
         final stateKeyName = model.displayNameFor(event.state_key);
@@ -208,6 +211,21 @@ class _MessageListState extends State<MessageList> {
           audioPlayer: audioPlayer,
           msg: msg,
           matrixUriToUrl: widget.accountController.matrixUriToUrl,
+        );
+      } else if (isSticker) {
+        bubbleType = BubbleType.None;
+        final msg = ImageMessage.fromJson(event.content);
+        child = FractionallySizedBox(
+          widthFactor: 0.7,
+          child: ImageWidget(
+            boxFit: BoxFit.contain,
+            event: event,
+            msg: msg,
+            matrixUriToUrl: widget.accountController.matrixUriToUrl,
+            matrixUriToThumbnailUrl: widget.accountController.matrixUriToThumbnailUrl,
+            onSaveStateChanged: (s) => imageSaveStates[event.event_id] = s,
+            canOpen: false,
+          ),
         );
       } else if (event.type == 'm.room.encrypted') {
         child = EncryptedWidget(senderName: senderName);
@@ -290,8 +308,9 @@ class _MessageListState extends State<MessageList> {
       final isRedacted = event.unsigned.containsKey('redacted_because');
       final canRedact = !event.isRedaction && !event.isStateEvent && isMyMessage;
 
-      onLongPress = isRedacted
-          ? (_) => {}
+
+      onLongPress = isRedacted || (!isMyMessage && isSticker)
+          ? null
           : (Widget item) => showDialog(
                 context: context,
                 builder: (context) => MessageDialog.fromWidget(
@@ -299,10 +318,11 @@ class _MessageListState extends State<MessageList> {
                   event,
                   item,
                   redact: canRedact ? () => widget.accountController.redactEvent(model.roomId, event.event_id) : null,
-                  copyText: !(msg is ImageMessage) && !event.isRedaction && !event.isStateEvent ? msg.body : null,
-                  copyUrl: msg is ImageMessage ? widget.accountController.matrixUriToUrl(Uri.parse(msg.url)).toString() : null,
+                  copyText: !(msg is ImageMessage) && !isSticker && !event.isRedaction && !event.isStateEvent ? msg.body : null,
+                  copyUrl: msg is ImageMessage && !isSticker? widget.accountController.matrixUriToUrl(Uri.parse(msg.url)).toString() : null,
                 ),
               );
+
 
       return MessageItem(
         showSenderName: model.members.length > 2,

@@ -55,7 +55,8 @@ class TimelineEntriesBuilder {
           timeDiff(entry, earlier) < _followTimeSpan &&
           sameSender(entry, earlier) &&
           !entry.event.event.isStateEvent &&
-          !earlier.event.event.isStateEvent) {
+          !earlier.event.event.isStateEvent &&
+          earlier.event.event.type != 'm.sticker') {
         entry.isFollowing = true;
       }
 
@@ -64,7 +65,8 @@ class TimelineEntriesBuilder {
           timeDiff(entry, later) < _followTimeSpan &&
           sameSender(entry, later) &&
           !entry.event.event.isStateEvent &&
-          !later.event.event.isStateEvent) {
+          !later.event.event.isStateEvent &&
+          later.event.event.type != 'm.sticker') {
         entry.hasFollower = true;
       }
     }

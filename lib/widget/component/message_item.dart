@@ -55,11 +55,12 @@ class MessageItem extends StatelessWidget {
 
     return TimelineRow(
       onTap: onTap,
-      onLongPress: () => onLongPress(this),
+      onLongPress: onLongPress == null ? null : () => onLongPress(this),
       align: roomEvent.isStateEvent ? TimelineAlign.center : isMyMessage ? TimelineAlign.end : TimelineAlign.start,
       child: Opacity(
         opacity: isGhost ? 0.4 : 1,
         child: Bubble(
+          alignToCornerSide: bubbleType == BubbleType.None,
           child: child,
           color: _bubbleColor(context),
           cornerSide: roomEvent.isStateEvent ? BubbleCornerSide.none : isMyMessage ? BubbleCornerSide.end : BubbleCornerSide.start,

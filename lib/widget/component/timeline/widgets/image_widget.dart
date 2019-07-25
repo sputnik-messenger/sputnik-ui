@@ -36,6 +36,8 @@ class ImageWidget extends StatefulWidget {
   final Future<File> Function(Uri url, String name) saveImage;
   final void Function(SaveState saveState) onSaveStateChanged;
   final SaveState initialSaveState;
+  final BoxFit boxFit;
+  final bool canOpen;
 
   const ImageWidget({
     Key key,
@@ -46,6 +48,8 @@ class ImageWidget extends StatefulWidget {
     this.saveImage,
     this.initialSaveState,
     this.onSaveStateChanged,
+    this.boxFit,
+    this.canOpen = true,
   }) : super(key: key);
 
   @override
@@ -120,62 +124,66 @@ class _ImageWidgetState extends State<ImageWidget> {
               child: SizedBox(
                 height: 300,
                 child: InkWell(
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ImageRoute(
-                                fullUrl: fullUrl,
-                                thumbUrl: thumbUrl,
-                              ))),
-                  onLongPress: () async {
-                    final time = DateTime.fromMillisecondsSinceEpoch(widget.event.origin_server_ts);
-                    final name = '${(time.millisecondsSinceEpoch / 1000).floor()}_${msg.body}';
-                    setState(() {
-                      saveState = SaveState.start;
-                    });
-                    widget.onSaveStateChanged(saveState);
-                    SaveState result = SaveState.failed;
-                    File file;
-                    try {
-                      file = await widget.saveImage(fullUrl, name);
-                      bool exists = await file.exists();
-                      result = exists ? SaveState.success : SaveState.failed;
-                    } catch (e, stack) {
-                      debugPrint(e.toString());
-                      debugPrint(stack.toString());
-                    }
-                    setState(() {
-                      saveState = result;
-                    });
-                    widget.onSaveStateChanged(saveState);
-                    if (result == SaveState.success) {
-                      Scaffold.of(context).showSnackBar(SnackBar(
-                        content: Text('Saved to ${file.path}'),
-                        action: file == null
-                            ? null
-                            : SnackBarAction(
-                                textColor: Colors.white,
-                                label: 'Open',
-                                onPressed: () {
-                                  OpenFile.open(file.path);
-                                }),
-                        backgroundColor: theme.successColor,
-                      ));
-                    } else {
-                      Scaffold.of(context).showSnackBar(SnackBar(
-                        content: Text('Saving image failed! ${msg.body}'),
-                        backgroundColor: theme.errorColor,
-                      ));
-                    }
-                  },
+                  onTap: !widget.canOpen
+                      ? null
+                      : () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ImageRoute(
+                                    fullUrl: fullUrl,
+                                    thumbUrl: thumbUrl,
+                                  ))),
+                  onLongPress: widget.saveImage == null
+                      ? null
+                      : () async {
+                          final time = DateTime.fromMillisecondsSinceEpoch(widget.event.origin_server_ts);
+                          final name = '${(time.millisecondsSinceEpoch / 1000).floor()}_${msg.body}';
+                          setState(() {
+                            saveState = SaveState.start;
+                          });
+                          widget.onSaveStateChanged(saveState);
+                          SaveState result = SaveState.failed;
+                          File file;
+                          try {
+                            file = await widget.saveImage(fullUrl, name);
+                            bool exists = await file.exists();
+                            result = exists ? SaveState.success : SaveState.failed;
+                          } catch (e, stack) {
+                            debugPrint(e.toString());
+                            debugPrint(stack.toString());
+                          }
+                          setState(() {
+                            saveState = result;
+                          });
+                          widget.onSaveStateChanged(saveState);
+                          if (result == SaveState.success) {
+                            Scaffold.of(context).showSnackBar(SnackBar(
+                              content: Text('Saved to ${file.path}'),
+                              action: file == null
+                                  ? null
+                                  : SnackBarAction(
+                                      textColor: Colors.white,
+                                      label: 'Open',
+                                      onPressed: () {
+                                        OpenFile.open(file.path);
+                                      }),
+                              backgroundColor: theme.successColor,
+                            ));
+                          } else {
+                            Scaffold.of(context).showSnackBar(SnackBar(
+                              content: Text('Saving image failed! ${msg.body}'),
+                              backgroundColor: theme.errorColor,
+                            ));
+                          }
+                        },
                   child: Stack(
                     alignment: Alignment(0, 0),
                     fit: StackFit.expand,
                     children: <Widget>[
                       AnimatedOpacity(
-                        opacity: loadingOpacity,
-                        duration: Duration(milliseconds: 1000),
-                        curve: Curves.easeIn,
+                        opacity: imageOpacity == 1 ? 0 : loadingOpacity,
+                        curve: (imageOpacity == 1 ? 0 : loadingOpacity) == 0 ? Curves.easeOut : Curves.easeIn,
+                        duration: Duration(milliseconds: (1500)),
                         child: FractionallySizedBox(
                           widthFactor: 1,
                           heightFactor: 1,
@@ -194,7 +202,9 @@ class _ImageWidgetState extends State<ImageWidget> {
                               duration: Duration(milliseconds: 200),
                               child: Image.file(
                                 snapshot.data,
-                                fit: ratio > 1.5 ? BoxFit.fitWidth : ratio < 0.5 ? BoxFit.fitHeight : BoxFit.cover,
+                                fit: widget.boxFit != null
+                                    ? widget.boxFit
+                                    : ratio > 1.5 ? BoxFit.fitWidth : ratio < 0.5 ? BoxFit.fitHeight : BoxFit.cover,
                               ),
                             );
                           } else {
@@ -207,7 +217,7 @@ class _ImageWidgetState extends State<ImageWidget> {
                             return AnimatedOpacity(
                               opacity: loadingOpacity,
                               curve: Curves.easeIn,
-                              duration: Duration(milliseconds: 1000),
+                              duration: Duration(milliseconds: 2000),
                               child: loadingIndicator,
                             );
                           }
