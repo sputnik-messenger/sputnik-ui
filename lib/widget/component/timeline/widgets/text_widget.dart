@@ -24,7 +24,8 @@ class TextWidget extends StatelessWidget {
   final TextMessage msg;
 
   // todo: is this really a good idea?
-  static final urlRegex = RegExp(r'''(?:(?:https?:\/\/|www)[^\s]+|[\w#@][^\s]+\.(?:com|de|cn|net|uk|org|info|nl|eu|ru)\b)''', caseSensitive: false);
+  static final urlRegex = RegExp(r'(?:(?:https?:\/\/|www)[^\s]+|[\w#@][^\s]+\.(?:com|de|cn|net|uk|org|info|nl|eu|ru)\b)', caseSensitive: false);
+  static final RegExp nonAsciiOnlyRegex = RegExp(r'^([^\x00-\x7F]\s*)+$');
 
   const TextWidget({Key key, this.msg}) : super(key: key);
 
@@ -41,7 +42,11 @@ class TextWidget extends StatelessWidget {
       if (html != null) {
         child = htmlWidget(context, html);
       } else {
-        child = Text(text);
+        bool isShortEmoji = nonAsciiOnlyRegex.hasMatch(text) && text.length < 20;
+        child = Text(
+          text,
+          textScaleFactor: isShortEmoji ? 3 : 1,
+        );
       }
     }
     return child;
@@ -77,7 +82,8 @@ class TextWidget extends StatelessWidget {
         }
       },
       data: text.replaceAll('<mx-reply>', '<p>').replaceAll('<//mx-reply>', '<//p>'),
-      showImages: false, //todo: show images and support mxc image uris
+      showImages: false,
+      //todo: show images and support mxc image uris
       linkStyle: TextStyle(fontWeight: FontWeight.w500, decoration: TextDecoration.underline, color: Colors.black),
     );
   }
