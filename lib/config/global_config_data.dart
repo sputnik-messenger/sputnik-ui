@@ -17,6 +17,7 @@
 
 
 import 'package:flutter/widgets.dart';
+import 'package:sputnik_ui/sticker/sticker_pack.dart';
 import 'package:sputnik_ui/theme/sputnik_theme.dart';
 
 abstract class GlobalConfigData {
@@ -39,4 +40,6 @@ abstract class GlobalConfigData {
   String get mediaFileDirectoryName;
 
   WidgetBuilder get timelineBackground;
+
+  List<StickerPack> get stickerPacks;
 }
