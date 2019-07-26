@@ -33,6 +33,7 @@ class MessageItem extends StatelessWidget {
   final Widget child;
   final VoidCallback onTap;
   final void Function(Widget) onLongPress;
+  final VoidCallback onSwipeRight;
 
   MessageItem({
     this.child,
@@ -46,6 +47,7 @@ class MessageItem extends StatelessWidget {
     this.senderName,
     this.onTap,
     this.onLongPress,
+    this.onSwipeRight,
     Key key,
   }) : super(key: key);
 
@@ -56,6 +58,7 @@ class MessageItem extends StatelessWidget {
     return TimelineRow(
       onTap: onTap,
       onLongPress: onLongPress == null ? null : () => onLongPress(this),
+      onSwipeRight: onSwipeRight,
       align: roomEvent.isStateEvent ? TimelineAlign.center : isMyMessage ? TimelineAlign.end : TimelineAlign.start,
       child: Opacity(
         opacity: isGhost ? 0.4 : 1,

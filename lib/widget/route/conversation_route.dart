@@ -17,6 +17,7 @@
 
 import 'dart:io';
 
+import 'package:sputnik_matrix_sdk/util/rich_reply_util.dart';
 import 'package:sputnik_ui/config/global_config_widget.dart';
 import 'package:sputnik_ui/tool/file_saver.dart';
 import 'package:sputnik_ui/widget/component/conversation_app_bar.dart';
@@ -60,6 +61,7 @@ class _ConversationRouteState extends State<ConversationRoute> {
   bool isOverlayLocked = false;
   VoiceRecorder voiceRecorder = VoiceRecorder();
   final audioMessageOverlayController = AudioMessageOverlayController();
+  final replyControllor = ReplyController();
 
   @override
   void initState() {
@@ -118,10 +120,12 @@ class _ConversationRouteState extends State<ConversationRoute> {
                       onRefreshLatest: () async {
                         await widget.accountController.sync();
                       },
+                      onInitReplyTo: replyControllor.initReply,
                       model: timelineModel,
                     )),
                     MessageInputBar(
                       audioMessageOverlayController: audioMessageOverlayController,
+                      replyController: replyControllor,
                       onInputMode: (mode) {
                         if (mode == InputMode.Audio) {
                           voiceRecorder.startRecording();
@@ -136,6 +140,11 @@ class _ConversationRouteState extends State<ConversationRoute> {
                           debugPrint('sent message has id: ${result.body.event_id}');
                           _textEditingController.clear();
                         }
+                      },
+                      onSendReplyMessage: (ReplyToInfo toInfo, String reply) {
+                        widget.accountController.sendReply(toInfo.toRoomId, toInfo.toEvent, reply);
+                        _textEditingController.clear();
+                        replyControllor.clearReply();
                       },
                       onSendImageMessage: (Asset asset) async {
                         final original = await asset.requestOriginal();

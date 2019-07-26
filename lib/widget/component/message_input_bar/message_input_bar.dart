@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import 'package:matrix_rest_api/matrix_client_api_r0.dart' as m;
+import 'package:sputnik_matrix_sdk/util/rich_reply_util.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/record_animation.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/send_message_button.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/text_message_field.dart';
@@ -27,14 +29,18 @@ import 'audio_messag_overlay.dart';
 class MessageInputBar extends StatefulWidget {
   final void Function(InputMode) onInputMode;
   final void Function(String) onSendTextMessage;
+  final void Function(ReplyToInfo, String) onSendReplyMessage;
   final void Function(Asset) onSendImageMessage;
   final AudioMessageOverlayController audioMessageOverlayController;
+  final ReplyController replyController;
 
   const MessageInputBar({
     Key key,
     @required this.audioMessageOverlayController,
+    @required this.replyController,
     @required this.onInputMode,
     @required this.onSendTextMessage,
+    @required this.onSendReplyMessage,
     @required this.onSendImageMessage,
   }) : super(key: key);
 
@@ -44,11 +50,12 @@ class MessageInputBar extends StatefulWidget {
   }
 }
 
-enum InputMode { Neutral, Audio, Text }
+enum InputMode { Neutral, Audio, Text, Reply }
 
 class MessageInputBarState extends State<MessageInputBar> with SingleTickerProviderStateMixin<MessageInputBar> {
   InputMode inputMode = InputMode.Neutral;
   bool readyToSend = false;
+  ReplyToInfo replyToInfo;
 
   TextEditingController textEditingController = TextEditingController();
 
@@ -60,12 +67,14 @@ class MessageInputBarState extends State<MessageInputBar> with SingleTickerProvi
       setState(() {
         readyToSend = textEditingController.text.trim().length > 0;
         if (readyToSend) {
-          inputMode = InputMode.Text;
+          inputMode = replyToInfo != null ? InputMode.Reply : InputMode.Text;
         } else {
-          inputMode = InputMode.Neutral;
+          inputMode = replyToInfo != null ? InputMode.Reply : InputMode.Neutral;
         }
       });
     });
+
+    widget.replyController._attach(this);
 
     super.initState();
   }
@@ -73,6 +82,7 @@ class MessageInputBarState extends State<MessageInputBar> with SingleTickerProvi
   @override
   void dispose() {
     textEditingController.dispose();
+    widget.replyController.dispose();
     super.dispose();
   }
 
@@ -81,9 +91,11 @@ class MessageInputBarState extends State<MessageInputBar> with SingleTickerProvi
     return Row(
       children: <Widget>[
         Visibility(
-          visible: inputMode == InputMode.Text || inputMode == InputMode.Neutral,
+          visible: inputMode == InputMode.Text || inputMode == InputMode.Neutral || inputMode == InputMode.Reply,
           child: Flexible(
               child: TextMessageField(
+            replyToInfo: replyToInfo,
+            onCancelReply: _clearReply,
             controller: textEditingController,
             onSendImageMessage: widget.onSendImageMessage,
           )),
@@ -144,14 +156,21 @@ class MessageInputBarState extends State<MessageInputBar> with SingleTickerProvi
           ),
         ),
         Visibility(
-          visible: readyToSend,
-          child: SendMessageButton(onPressed: () {
-            if (inputMode == InputMode.Text) {
-              widget.onSendTextMessage(textEditingController.text);
-              textEditingController.clear();
-              _setMode(InputMode.Neutral);
-            }
-          }),
+          visible: readyToSend || inputMode == InputMode.Reply,
+          child: Opacity(
+            opacity: inputMode == InputMode.Reply && !readyToSend ? 0.4 : 1,
+            child: SendMessageButton(onPressed: () {
+              if (inputMode == InputMode.Text) {
+                widget.onSendTextMessage(textEditingController.text);
+                textEditingController.clear();
+                _setMode(InputMode.Neutral);
+              } else if (inputMode == InputMode.Reply) {
+                widget.onSendReplyMessage(replyToInfo, textEditingController.text);
+                textEditingController.clear();
+                _setMode(InputMode.Neutral);
+              }
+            }),
+          ),
         ),
       ],
     );
@@ -162,5 +181,33 @@ class MessageInputBarState extends State<MessageInputBar> with SingleTickerProvi
     setState(() {
       inputMode = mode;
     });
+  }
+
+  _clearReply() {
+    replyToInfo = null;
+    _setMode(textEditingController.text.isEmpty ? InputMode.Neutral : InputMode.Text);
+  }
+}
+
+class ReplyController {
+  MessageInputBarState _state;
+
+  void initReply(ReplyToInfo replyToInfo) {
+    if (_state != null) {
+      _state.replyToInfo = replyToInfo;
+      _state._setMode(InputMode.Reply);
+    }
+  }
+
+  _attach(MessageInputBarState state) {
+    this._state = state;
+  }
+
+  dispose() {
+    _state = null;
+  }
+
+  void clearReply() {
+    _state._clearReply();
   }
 }

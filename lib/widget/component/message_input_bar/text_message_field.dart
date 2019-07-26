@@ -15,15 +15,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import 'package:flutter/material.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
+import 'package:sputnik_matrix_sdk/util/rich_reply_util.dart';
+
+import 'reply_to_widget.dart';
 
 class TextMessageField extends StatefulWidget {
   final TextEditingController controller;
   final void Function(Asset) onSendImageMessage;
+  final VoidCallback onCancelReply;
+  final ReplyToInfo replyToInfo;
 
-  const TextMessageField({Key key, this.controller, this.onSendImageMessage}) : super(key: key);
+  const TextMessageField({
+    Key key,
+    this.controller,
+    this.onSendImageMessage,
+    this.onCancelReply,
+    this.replyToInfo,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -42,39 +52,53 @@ class TextMessageFieldState extends State<TextMessageField> {
         color: Colors.white,
         boxShadow: [BoxShadow(blurRadius: .5, spreadRadius: 1.0, color: Colors.black.withOpacity(.12))],
       ),
-      child: Row(
+      child: Column(
         children: <Widget>[
-          Expanded(
-            child: TextField(
-              minLines: 1,
-              maxLines: 6,
-              decoration: InputDecoration(
-                hintText: 'Message',
-                border: InputBorder.none,
-              ),
-              enableInteractiveSelection: true,
-              controller: widget.controller,
+          Visibility(
+            visible: widget.replyToInfo != null,
+            child: ReplyToWidget(
+              replyToInfo: widget.replyToInfo,
+              onCancel: widget.onCancelReply,
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.image),
-            onPressed: () async {
-              final theme = Theme.of(context);
-              final result = await MultiImagePicker.pickImages(
-                materialOptions: MaterialOptions(
-                  actionBarColor: '#${theme.primaryColor.value.toRadixString(16)}',
-                  statusBarColor: '#${theme.primaryColorDark.value.toRadixString(16)}',
-                  selectCircleStrokeColor: '#${theme.accentColor.value.toRadixString(16)}',
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: TextField(
+                  minLines: 1,
+                  maxLines: 6,
+                  decoration: InputDecoration(
+                    hintText: 'Message',
+                    border: InputBorder.none,
+                  ),
+                  enableInteractiveSelection: true,
+                  controller: widget.controller,
                 ),
-                maxImages: 20,
-                enableCamera: false,
-              );
+              ),
+              Visibility(
+                visible: widget.replyToInfo == null,
+                child: IconButton(
+                  icon: Icon(Icons.image),
+                  onPressed: () async {
+                    final theme = Theme.of(context);
+                    final result = await MultiImagePicker.pickImages(
+                      materialOptions: MaterialOptions(
+                        actionBarColor: '#${theme.primaryColor.value.toRadixString(16)}',
+                        statusBarColor: '#${theme.primaryColorDark.value.toRadixString(16)}',
+                        selectCircleStrokeColor: '#${theme.accentColor.value.toRadixString(16)}',
+                      ),
+                      maxImages: 20,
+                      enableCamera: false,
+                    );
 
-              for (final asset in result) {
-                widget.onSendImageMessage(asset);
-              }
-            },
-          )
+                    for (final asset in result) {
+                      widget.onSendImageMessage(asset);
+                    }
+                  },
+                ),
+              )
+            ],
+          ),
         ],
       ),
     );

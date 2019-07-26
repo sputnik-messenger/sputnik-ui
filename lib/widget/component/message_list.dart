@@ -17,6 +17,7 @@
 
 import 'dart:convert';
 
+import 'package:sputnik_matrix_sdk/util/rich_reply_util.dart';
 import 'package:sputnik_ui/cache/media_cache.dart';
 import 'package:sputnik_ui/config/global_config_widget.dart';
 import 'package:sputnik_ui/tool/file_saver.dart';
@@ -46,10 +47,18 @@ import 'timeline/model/model.dart';
 class MessageList extends StatefulWidget {
   final Future<void> Function() onLoadPrevious;
   final Future<void> Function() onRefreshLatest;
+  final void Function(ReplyToInfo) onInitReplyTo;
   final AccountController accountController;
   final TimelineModel model;
 
-  const MessageList({Key key, this.onLoadPrevious, this.onRefreshLatest, this.accountController, this.model}) : super(key: key);
+  const MessageList({
+    Key key,
+    this.onLoadPrevious,
+    this.onRefreshLatest,
+    this.onInitReplyTo,
+    this.accountController,
+    this.model,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -125,7 +134,7 @@ class _MessageListState extends State<MessageList> {
         itemBuilder: (context, i) {
           Widget item;
           if (i < widget.model.length) {
-            item = _buildMessageItem(fileSaver, widget.model, i);
+            item = _buildMessageItem(fileSaver, widget.model, i, widget.onInitReplyTo);
           } else {
             item = Container(
               alignment: Alignment.center,
@@ -151,7 +160,7 @@ class _MessageListState extends State<MessageList> {
     );
   }
 
-  Widget _buildMessageItem(FileSaver fileSaver, TimelineModel model, int index) {
+  Widget _buildMessageItem(FileSaver fileSaver, TimelineModel model, int index, void Function(ReplyToInfo) initReplyTo) {
     if (index == 0) {
       debugPrint('setting readmarker');
       final latestEventId = model.latestRoomEvent?.event_id;
@@ -164,6 +173,7 @@ class _MessageListState extends State<MessageList> {
     Widget child;
     VoidCallback onTap;
     void Function(Widget widget) onLongPress;
+    VoidCallback onSwipeRight;
     if (entry is EventEntry) {
       final event = entry.event.event;
 
@@ -308,7 +318,6 @@ class _MessageListState extends State<MessageList> {
       final isRedacted = event.unsigned.containsKey('redacted_because');
       final canRedact = !event.isRedaction && !event.isStateEvent && isMyMessage;
 
-
       onLongPress = isRedacted || (!isMyMessage && isSticker)
           ? null
           : (Widget item) => showDialog(
@@ -319,10 +328,11 @@ class _MessageListState extends State<MessageList> {
                   item,
                   redact: canRedact ? () => widget.accountController.redactEvent(model.roomId, event.event_id) : null,
                   copyText: !(msg is ImageMessage) && !isSticker && !event.isRedaction && !event.isStateEvent ? msg.body : null,
-                  copyUrl: msg is ImageMessage && !isSticker? widget.accountController.matrixUriToUrl(Uri.parse(msg.url)).toString() : null,
+                  copyUrl: msg is ImageMessage && !isSticker ? widget.accountController.matrixUriToUrl(Uri.parse(msg.url)).toString() : null,
                 ),
               );
 
+      onSwipeRight = isRedacted || (!isMyMessage && isSticker) ? null : () => initReplyTo(ReplyToInfo(model.roomId, event));
 
       return MessageItem(
         showSenderName: model.members.length > 2,
@@ -337,6 +347,7 @@ class _MessageListState extends State<MessageList> {
         key: ValueKey(event.event_id),
         onTap: onTap,
         onLongPress: onLongPress,
+        onSwipeRight: onSwipeRight,
       );
     } else if (entry is GroupEntry) {
       return FlatButton(
