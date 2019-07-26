@@ -89,7 +89,8 @@ class _TimelineRowState extends State<TimelineRow> {
           }
         },
         child: Container(
-          color: swipeOffset.dx != 0 ? Colors.grey.withOpacity(0.1) : Colors.transparent,
+          decoration:
+              BoxDecoration(borderRadius: BorderRadius.circular(8), color: swipeOffset.dx != 0 ? Colors.grey.withOpacity(0.1) : Colors.transparent),
           child: Stack(
             alignment: TimelineRow._alignMapping[widget.align],
             children: <Widget>[
@@ -106,12 +107,8 @@ class _TimelineRowState extends State<TimelineRow> {
                           children: <Widget>[
                             Icon(
                               Icons.reply,
-                              size: 40,
-                              color: Colors.black.withOpacity(0.7),
-                            ),
-                            Text(
-                              'Reply',
-                              style: TextStyle(color: Colors.black.withOpacity(0.7), fontSize: 30),
+                              size: 30,
+                              color: Colors.grey[800],
                             ),
                           ],
                         ),
