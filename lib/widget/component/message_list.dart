@@ -332,7 +332,7 @@ class _MessageListState extends State<MessageList> {
                 ),
               );
 
-      onSwipeRight = isRedacted || (!isMyMessage && isSticker) ? null : () => initReplyTo(ReplyToInfo(model.roomId, event));
+      onSwipeRight = isRedacted ? null : () => initReplyTo(ReplyToInfo(model.roomId, event));
 
       return MessageItem(
         showSenderName: model.members.length > 2,
