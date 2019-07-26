@@ -53,12 +53,42 @@ class TextMessageFieldState extends State<TextMessageField> {
         boxShadow: [BoxShadow(blurRadius: .5, spreadRadius: 1.0, color: Colors.black.withOpacity(.12))],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Visibility(
             visible: widget.replyToInfo != null,
-            child: ReplyToWidget(
-              replyToInfo: widget.replyToInfo,
-              onCancel: widget.onCancelReply,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: ClipRRect(
+                clipBehavior: Clip.antiAlias,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(3),
+                  bottomLeft: Radius.circular(3),
+                  topRight: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+                child: Stack(
+                  children: <Widget>[
+                    Container(
+                      constraints: BoxConstraints(maxHeight: 150),
+                      child: SingleChildScrollView(
+                        child: ReplyToWidget(
+                          replyToInfo: widget.replyToInfo,
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment(1, -1),
+                      child: IconButton(
+                        onPressed: widget.onCancelReply,
+                        icon: Icon(Icons.cancel),
+                        color: Colors.grey[900].withOpacity(0.5),
+                        iconSize: 28,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
           Row(

@@ -105,83 +105,87 @@ class _ConversationRouteState extends State<ConversationRoute> {
               widget.title,
               widget.subtitle,
             ),
-            body: Stack(
-              fit: StackFit.expand,
-              children: [
-                config.timelineBackground(context),
-                Column(
-                  children: <Widget>[
-                    Expanded(
-                        child: MessageList(
-                      accountController: widget.accountController,
-                      onLoadPrevious: () {
-                        return widget.accountController.fetchPreviousMessages(widget.roomId);
-                      },
-                      onRefreshLatest: () async {
-                        await widget.accountController.sync();
-                      },
-                      onInitReplyTo: replyControllor.initReply,
-                      model: timelineModel,
-                    )),
-                    MessageInputBar(
-                      audioMessageOverlayController: audioMessageOverlayController,
-                      replyController: replyControllor,
-                      onInputMode: (mode) {
-                        if (mode == InputMode.Audio) {
-                          voiceRecorder.startRecording();
-                        }
-                        setState(() => inputMode = mode);
-                      },
-                      onSendTextMessage: (text) async {
-                        String trimmed = text.trim();
-                        if (text.isNotEmpty) {
-                          debugPrint('sending msg: "$text"');
-                          final result = await widget.accountController.sendTextMessage(widget.roomId, trimmed);
-                          debugPrint('sent message has id: ${result.body.event_id}');
+            body: FractionallySizedBox(
+              heightFactor: 1,
+              widthFactor: 1,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  config.timelineBackground(context),
+                  Column(
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      Flexible(
+                          flex: 1,
+                          fit: FlexFit.tight,
+                          child: MessageList(
+                            accountController: widget.accountController,
+                            onLoadPrevious: () {
+                              return widget.accountController.fetchPreviousMessages(widget.roomId);
+                            },
+                            onRefreshLatest: () async {
+                              await widget.accountController.sync();
+                            },
+                            onInitReplyTo: replyControllor.initReply,
+                            model: timelineModel,
+                          )),
+                      MessageInputBar(
+                        audioMessageOverlayController: audioMessageOverlayController,
+                        replyController: replyControllor,
+                        onInputMode: (mode) {
+                          if (mode == InputMode.Audio) {
+                            voiceRecorder.startRecording();
+                          }
+                          setState(() => inputMode = mode);
+                        },
+                        onSendTextMessage: (text) async {
+                          String trimmed = text.trim();
+                          if (text.isNotEmpty) {
+                            _textEditingController.clear();
+                          }
+                        },
+                        onSendReplyMessage: (ReplyToInfo toInfo, String reply) {
+                          widget.accountController.sendReply(toInfo.toRoomId, toInfo.toEvent, reply);
                           _textEditingController.clear();
-                        }
-                      },
-                      onSendReplyMessage: (ReplyToInfo toInfo, String reply) {
-                        widget.accountController.sendReply(toInfo.toRoomId, toInfo.toEvent, reply);
-                        _textEditingController.clear();
-                        replyControllor.clearReply();
-                      },
-                      onSendImageMessage: (Asset asset) async {
-                        final original = await asset.requestOriginal();
+                          replyControllor.clearReply();
+                        },
+                        onSendImageMessage: (Asset asset) async {
+                          final original = await asset.requestOriginal();
 
-                        final contentType = ContentType.parse('image/${asset.name.split('.').last}'.replaceAll('jpg', 'jpeg'));
-                        final imageMedia = await widget.accountController.postMediaByteData(asset.name, original, contentType);
+                          final contentType = ContentType.parse('image/${asset.name.split('.').last}'.replaceAll('jpg', 'jpeg'));
+                          final imageMedia = await widget.accountController.postMediaByteData(asset.name, original, contentType);
 
-                        final info = m.ImageInfo(
-                          size: original.lengthInBytes.toDouble(),
-                          mimetype: contentType.mimeType,
-                          w: asset.originalWidth.toDouble(),
-                          h: asset.originalHeight.toDouble(),
-                        );
-                        await widget.accountController.sendImageMessage(widget.roomId, asset.name, imageMedia.body.content_uri, info);
-                      },
-                    ),
-                  ],
-                ),
-                Visibility(
-                  visible: inputMode == InputMode.Audio || isOverlayLocked,
-                  child: AudioMessageOverlay(
-                      controller: audioMessageOverlayController,
-                      voiceRecorder: voiceRecorder,
-                      onSendAudio: (uri, info) async {
-                        try {
-                          final mediaResult = await widget.accountController.postMedia('audio.awb', uri, ContentType.parse(info.mimetype));
-                          final matrixMediaUri = mediaResult.body.content_uri;
-                          await widget.accountController.sendAudioMessage(widget.roomId, 'audio.awb', matrixMediaUri, info);
-                        } catch (e, trace) {
-                          debugPrint(e.toString());
-                          debugPrint(trace.toString());
-                        }
-                        File.fromUri(uri).delete();
-                      },
-                      onLockChanged: (isLocked) => setState(() => isOverlayLocked = isLocked)),
-                ),
-              ],
+                          final info = m.ImageInfo(
+                            size: original.lengthInBytes.toDouble(),
+                            mimetype: contentType.mimeType,
+                            w: asset.originalWidth.toDouble(),
+                            h: asset.originalHeight.toDouble(),
+                          );
+                          await widget.accountController.sendImageMessage(widget.roomId, asset.name, imageMedia.body.content_uri, info);
+                        },
+                      ),
+                    ],
+                  ),
+                  Visibility(
+                    visible: inputMode == InputMode.Audio || isOverlayLocked,
+                    child: AudioMessageOverlay(
+                        controller: audioMessageOverlayController,
+                        voiceRecorder: voiceRecorder,
+                        onSendAudio: (uri, info) async {
+                          try {
+                            final mediaResult = await widget.accountController.postMedia('audio.awb', uri, ContentType.parse(info.mimetype));
+                            final matrixMediaUri = mediaResult.body.content_uri;
+                            await widget.accountController.sendAudioMessage(widget.roomId, 'audio.awb', matrixMediaUri, info);
+                          } catch (e, trace) {
+                            debugPrint(e.toString());
+                            debugPrint(trace.toString());
+                          }
+                          File.fromUri(uri).delete();
+                        },
+                        onLockChanged: (isLocked) => setState(() => isOverlayLocked = isLocked)),
+                  ),
+                ],
+              ),
             ),
           );
         },

@@ -89,20 +89,24 @@ class MessageInputBarState extends State<MessageInputBar> with SingleTickerProvi
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: <Widget>[
-        Visibility(
-          visible: inputMode == InputMode.Text || inputMode == InputMode.Neutral || inputMode == InputMode.Reply,
-          child: Flexible(
-              child: TextMessageField(
-            replyToInfo: replyToInfo,
-            onCancelReply: _clearReply,
-            controller: textEditingController,
-            onSendImageMessage: widget.onSendImageMessage,
-          )),
+        Flexible(
+          child: Visibility(
+            visible: inputMode == InputMode.Text || inputMode == InputMode.Neutral || inputMode == InputMode.Reply,
+            child: TextMessageField(
+              replyToInfo: replyToInfo,
+              onCancelReply: _clearReply,
+              controller: textEditingController,
+              onSendImageMessage: widget.onSendImageMessage,
+            ),
+          ),
         ),
         Visibility(
           visible: inputMode == InputMode.Neutral || inputMode == InputMode.Audio,
-          child: SizedBox(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 4.0),
             child: Draggable(
               maxSimultaneousDrags: 1,
               onDraggableCanceled: (v, o) {
@@ -159,17 +163,23 @@ class MessageInputBarState extends State<MessageInputBar> with SingleTickerProvi
           visible: readyToSend || inputMode == InputMode.Reply,
           child: Opacity(
             opacity: inputMode == InputMode.Reply && !readyToSend ? 0.4 : 1,
-            child: SendMessageButton(onPressed: () {
-              if (inputMode == InputMode.Text) {
-                widget.onSendTextMessage(textEditingController.text);
-                textEditingController.clear();
-                _setMode(InputMode.Neutral);
-              } else if (inputMode == InputMode.Reply) {
-                widget.onSendReplyMessage(replyToInfo, textEditingController.text);
-                textEditingController.clear();
-                _setMode(InputMode.Neutral);
-              }
-            }),
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 4),
+              child: SendMessageButton(onPressed: () {
+                if (
+                readyToSend) {
+                  if (inputMode == InputMode.Text) {
+                    widget.onSendTextMessage(textEditingController.text);
+                    textEditingController.clear();
+                    _setMode(InputMode.Neutral);
+                  } else if (inputMode == InputMode.Reply) {
+                    widget.onSendReplyMessage(replyToInfo, textEditingController.text);
+                    textEditingController.clear();
+                    _setMode(InputMode.Neutral);
+                  }
+                }
+              }),
+            ),
           ),
         ),
       ],
