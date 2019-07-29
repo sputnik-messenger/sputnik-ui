@@ -15,15 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:multi_image_picker/multi_image_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sputnik_matrix_sdk/util/rich_reply_util.dart';
 
 import 'reply_to_widget.dart';
 
 class TextMessageField extends StatefulWidget {
   final TextEditingController controller;
-  final void Function(Asset) onSendImageMessage;
+  final void Function(File) onSendImageMessage;
   final VoidCallback onCancelReply;
   final ReplyToInfo replyToInfo;
 
@@ -82,7 +84,7 @@ class TextMessageFieldState extends State<TextMessageField> {
                       child: IconButton(
                         onPressed: widget.onCancelReply,
                         icon: Icon(Icons.cancel),
-                        color: Colors.grey[900].withOpacity(0.5),
+                        color: Colors.grey[800],
                         iconSize: 28,
                       ),
                     ),
@@ -106,24 +108,31 @@ class TextMessageFieldState extends State<TextMessageField> {
                 ),
               ),
               Visibility(
-                visible: widget.replyToInfo == null,
+                visible:  widget.controller.text.isNotEmpty || widget.replyToInfo != null,
+                child: IconButton(
+                  icon: Icon(Icons.backspace, color: widget.controller.text.isEmpty ? Colors.grey[300] : Colors.grey[800] ),
+                  onPressed: () {
+                    widget.controller.clear();
+                  },
+                ),
+              ),
+              Visibility(
+                visible: widget.replyToInfo == null && widget.controller.text.isEmpty,
                 child: IconButton(
                   icon: Icon(Icons.image),
                   onPressed: () async {
-                    final theme = Theme.of(context);
-                    final result = await MultiImagePicker.pickImages(
-                      materialOptions: MaterialOptions(
-                        actionBarColor: '#${theme.primaryColor.value.toRadixString(16)}',
-                        statusBarColor: '#${theme.primaryColorDark.value.toRadixString(16)}',
-                        selectCircleStrokeColor: '#${theme.accentColor.value.toRadixString(16)}',
-                      ),
-                      maxImages: 20,
-                      enableCamera: false,
-                    );
-
-                    for (final asset in result) {
-                      widget.onSendImageMessage(asset);
-                    }
+                    final image = await ImagePicker.pickImage(source: ImageSource.gallery);
+                    widget.onSendImageMessage(image);
+                  },
+                ),
+              ),
+              Visibility(
+                visible:  widget.replyToInfo == null && widget.controller.text.isEmpty,
+                child: IconButton(
+                  icon: Icon(Icons.camera_alt),
+                  onPressed: () async {
+                    final image = await ImagePicker.pickImage(source: ImageSource.camera);
+                    widget.onSendImageMessage(image);
                   },
                 ),
               )

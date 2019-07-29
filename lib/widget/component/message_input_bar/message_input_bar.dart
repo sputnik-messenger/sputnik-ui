@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import 'dart:io';
+
 import 'package:matrix_rest_api/matrix_client_api_r0.dart' as m;
 import 'package:sputnik_matrix_sdk/util/rich_reply_util.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/record_animation.dart';
@@ -22,7 +24,6 @@ import 'package:sputnik_ui/widget/component/message_input_bar/send_message_butto
 import 'package:sputnik_ui/widget/component/message_input_bar/text_message_field.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:multi_image_picker/multi_image_picker.dart';
 
 import 'audio_messag_overlay.dart';
 
@@ -30,7 +31,7 @@ class MessageInputBar extends StatefulWidget {
   final void Function(InputMode) onInputMode;
   final void Function(String) onSendTextMessage;
   final void Function(ReplyToInfo, String) onSendReplyMessage;
-  final void Function(Asset) onSendImageMessage;
+  final void Function(File) onSendImageMessage;
   final AudioMessageOverlayController audioMessageOverlayController;
   final ReplyController replyController;
 

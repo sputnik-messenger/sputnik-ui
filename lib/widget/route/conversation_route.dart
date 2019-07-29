@@ -20,6 +20,7 @@ import 'dart:io';
 import 'package:sputnik_matrix_sdk/util/rich_reply_util.dart';
 import 'package:sputnik_ui/config/global_config_widget.dart';
 import 'package:sputnik_ui/tool/file_saver.dart';
+import 'package:sputnik_ui/tool/image_file_util.dart';
 import 'package:sputnik_ui/widget/component/conversation_app_bar.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/audio_messag_overlay.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/message_input_bar.dart';
@@ -31,7 +32,7 @@ import 'package:sputnik_matrix_sdk/matrix_manager/account_controller.dart';
 import 'package:sputnik_app_state/sputnik_app_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:multi_image_picker/multi_image_picker.dart';
+import 'package:image/image.dart';
 import 'package:tuple/tuple.dart';
 import 'package:matrix_rest_api/matrix_client_api_r0.dart' as m;
 
@@ -141,6 +142,14 @@ class _ConversationRouteState extends State<ConversationRoute> {
                         onSendTextMessage: (text) async {
                           String trimmed = text.trim();
                           if (text.isNotEmpty) {
+                            debugPrint('sending msg: "$text"');
+                            // todo: just for testing
+                            final result = trimmed.startsWith('/sticker ')
+                                ? await widget.accountController
+                                    .sendSticker(widget.roomId, config.stickerPacks[0].stickers[int.parse(trimmed.split(' ').last)])
+                                : await widget.accountController.sendTextMessage(widget.roomId, trimmed);
+                            debugPrint('sent message has id: ${result.body.event_id}');
+
                             _textEditingController.clear();
                           }
                         },
@@ -149,19 +158,19 @@ class _ConversationRouteState extends State<ConversationRoute> {
                           _textEditingController.clear();
                           replyControllor.clearReply();
                         },
-                        onSendImageMessage: (Asset asset) async {
-                          final original = await asset.requestOriginal();
-
-                          final contentType = ContentType.parse('image/${asset.name.split('.').last}'.replaceAll('jpg', 'jpeg'));
-                          final imageMedia = await widget.accountController.postMediaByteData(asset.name, original, contentType);
-
+                        onSendImageMessage: (File file) async {
+                          final infoProvider = ImageInfoProvider(file);
+                          await infoProvider.init();
+                          final contentType = ContentType.parse(infoProvider.mimeType);
+                          final imageMedia = await widget.accountController.postMedia(infoProvider.fileName, infoProvider.path, contentType);
                           final info = m.ImageInfo(
-                            size: original.lengthInBytes.toDouble(),
+                            size: infoProvider.lengthInBytes.toDouble(),
                             mimetype: contentType.mimeType,
-                            w: asset.originalWidth.toDouble(),
-                            h: asset.originalHeight.toDouble(),
+                            w: infoProvider.imageSize.width,
+                            h: infoProvider.imageSize.height,
                           );
-                          await widget.accountController.sendImageMessage(widget.roomId, asset.name, imageMedia.body.content_uri, info);
+                          await widget.accountController.sendImageMessage(widget.roomId, infoProvider.fileName, imageMedia.body.content_uri, info);
+                          infoProvider.release();
                         },
                       ),
                     ],

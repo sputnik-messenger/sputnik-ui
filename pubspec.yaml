@@ -15,7 +15,9 @@ dependencies:
   flutter_cache_manager: ^0.3.2
   audioplayers: ^0.13.1
   flutter_html: ^0.10.1
-  multi_image_picker: ^4.3.3
+  mime: ^0.9.6+3
+  image_picker: ^0.6.0+17
+  image: ^2.1.4
   flutter_redux: ^0.5.3
   flutter_udid: ^1.0.0
   share: ^0.6.2+1
