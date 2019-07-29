@@ -17,6 +17,7 @@
 
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sputnik_matrix_sdk/util/rich_reply_util.dart';
@@ -26,6 +27,7 @@ import 'reply_to_widget.dart';
 class TextMessageField extends StatefulWidget {
   final TextEditingController controller;
   final void Function(File) onSendImageMessage;
+  final void Function(Map<String, String>) onSendFiles;
   final VoidCallback onCancelReply;
   final ReplyToInfo replyToInfo;
 
@@ -33,6 +35,7 @@ class TextMessageField extends StatefulWidget {
     Key key,
     this.controller,
     this.onSendImageMessage,
+    this.onSendFiles,
     this.onCancelReply,
     this.replyToInfo,
   }) : super(key: key);
@@ -108,9 +111,9 @@ class TextMessageFieldState extends State<TextMessageField> {
                 ),
               ),
               Visibility(
-                visible:  widget.controller.text.isNotEmpty || widget.replyToInfo != null,
+                visible: widget.controller.text.isNotEmpty || widget.replyToInfo != null,
                 child: IconButton(
-                  icon: Icon(Icons.backspace, color: widget.controller.text.isEmpty ? Colors.grey[300] : Colors.grey[800] ),
+                  icon: Icon(Icons.backspace, color: widget.controller.text.isEmpty ? Colors.grey[300] : Colors.grey[800]),
                   onPressed: () {
                     widget.controller.clear();
                   },
@@ -119,20 +122,24 @@ class TextMessageFieldState extends State<TextMessageField> {
               Visibility(
                 visible: widget.replyToInfo == null && widget.controller.text.isEmpty,
                 child: IconButton(
-                  icon: Icon(Icons.image),
+                  icon: Icon(Icons.insert_drive_file),
                   onPressed: () async {
-                    final image = await ImagePicker.pickImage(source: ImageSource.gallery);
-                    widget.onSendImageMessage(image);
+                    final files = await FilePicker.getMultiFilePath(type: FileType.ANY);
+                    if (files != null) {
+                      widget.onSendFiles(files);
+                    }
                   },
                 ),
               ),
               Visibility(
-                visible:  widget.replyToInfo == null && widget.controller.text.isEmpty,
+                visible: widget.replyToInfo == null && widget.controller.text.isEmpty,
                 child: IconButton(
                   icon: Icon(Icons.camera_alt),
                   onPressed: () async {
                     final image = await ImagePicker.pickImage(source: ImageSource.camera);
-                    widget.onSendImageMessage(image);
+                    if (image != null) {
+                      widget.onSendImageMessage(image);
+                    }
                   },
                 ),
               )

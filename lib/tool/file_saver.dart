@@ -37,6 +37,10 @@ class FileSaver {
   bool _permissionsGranted = false;
 
   Future<File> saveImage(Uri url, String fileName) async {
+    return saveFile(url, fileName);
+  }
+
+  Future<File> saveFile(Uri url, String fileName) async {
     await _requestPermissionsIfNeeded();
     final downloadsDirectory = await DownloadsPathProvider.downloadsDirectory; // todo: uses deprecated api
     File file = await mediaCache.getSingleFile(url.toString());

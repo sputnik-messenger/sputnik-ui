@@ -17,8 +17,10 @@
 
 import 'dart:convert';
 
+import 'package:open_file/open_file.dart';
 import 'package:sputnik_matrix_sdk/util/rich_reply_util.dart';
 import 'package:sputnik_ui/cache/media_cache.dart';
+import 'package:sputnik_ui/config/global_config_data.dart';
 import 'package:sputnik_ui/config/global_config_widget.dart';
 import 'package:sputnik_ui/tool/file_saver.dart';
 import 'package:sputnik_ui/tool/name_color_manager.dart';
@@ -43,6 +45,7 @@ import 'package:sputnik_ui/widget/component/timeline/widgets/text_widget.dart';
 import 'package:intl/intl.dart';
 
 import 'timeline/model/model.dart';
+import 'timeline/widgets/file_widget.dart';
 
 class MessageList extends StatefulWidget {
   final Future<void> Function() onLoadPrevious;
@@ -134,7 +137,7 @@ class _MessageListState extends State<MessageList> {
         itemBuilder: (context, i) {
           Widget item;
           if (i < widget.model.length) {
-            item = _buildMessageItem(fileSaver, widget.model, i, widget.onInitReplyTo);
+            item = _buildMessageItem(config, fileSaver, widget.model, i, widget.onInitReplyTo);
           } else {
             item = Container(
               alignment: Alignment.center,
@@ -160,7 +163,13 @@ class _MessageListState extends State<MessageList> {
     );
   }
 
-  Widget _buildMessageItem(FileSaver fileSaver, TimelineModel model, int index, void Function(ReplyToInfo) initReplyTo) {
+  Widget _buildMessageItem(
+    GlobalConfigData config,
+    FileSaver fileSaver,
+    TimelineModel model,
+    int index,
+    void Function(ReplyToInfo) initReplyTo,
+  ) {
     if (index == 0) {
       debugPrint('setting readmarker');
       final latestEventId = model.latestRoomEvent?.event_id;
@@ -219,6 +228,36 @@ class _MessageListState extends State<MessageList> {
       } else if (msg is AudioMessage) {
         child = AudioWidget(
           audioPlayer: audioPlayer,
+          msg: msg,
+          matrixUriToUrl: widget.accountController.matrixUriToUrl,
+        );
+      } else if (msg is FileMessage) {
+        onTap = () async {
+          final name = msg.filename ?? msg.body ?? 'file';
+          final file = await fileSaver.saveFile(widget.accountController.matrixUriToUrl(Uri.parse(msg.url)), name);
+          if (file != null && await file.exists()) {
+            Scaffold.of(context).showSnackBar(SnackBar(
+              content: Text('Saved to ${file.path}'),
+              action: file == null
+                  ? null
+                  : SnackBarAction(
+                      textColor: Colors.white,
+                      label: 'Open',
+                      onPressed: () {
+                        OpenFile.open(file.path);
+                      }),
+              backgroundColor: config.sputnikThemeData.successColor,
+            ));
+          } else {
+            Scaffold.of(context).showSnackBar(SnackBar(
+              content: Text('Saving file failed! $name'),
+              backgroundColor: config.sputnikThemeData.errorColor,
+            ));
+          }
+        };
+        child = FileWidget(
+          saveFile: fileSaver.saveFile,
+          event: event,
           msg: msg,
           matrixUriToUrl: widget.accountController.matrixUriToUrl,
         );

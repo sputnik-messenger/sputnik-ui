@@ -17,7 +17,6 @@
 
 import 'dart:io';
 
-import 'package:matrix_rest_api/matrix_client_api_r0.dart' as m;
 import 'package:sputnik_matrix_sdk/util/rich_reply_util.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/record_animation.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/send_message_button.dart';
@@ -32,6 +31,7 @@ class MessageInputBar extends StatefulWidget {
   final void Function(String) onSendTextMessage;
   final void Function(ReplyToInfo, String) onSendReplyMessage;
   final void Function(File) onSendImageMessage;
+  final void Function(Map<String,String>) onSendFiles;
   final AudioMessageOverlayController audioMessageOverlayController;
   final ReplyController replyController;
 
@@ -43,6 +43,7 @@ class MessageInputBar extends StatefulWidget {
     @required this.onSendTextMessage,
     @required this.onSendReplyMessage,
     @required this.onSendImageMessage,
+    @required this.onSendFiles,
   }) : super(key: key);
 
   @override
@@ -101,6 +102,7 @@ class MessageInputBarState extends State<MessageInputBar> with SingleTickerProvi
               onCancelReply: _clearReply,
               controller: textEditingController,
               onSendImageMessage: widget.onSendImageMessage,
+              onSendFiles: widget.onSendFiles,
             ),
           ),
         ),

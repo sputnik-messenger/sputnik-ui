@@ -17,10 +17,12 @@
 
 import 'dart:io';
 
+import 'package:mime/mime.dart';
 import 'package:sputnik_matrix_sdk/util/rich_reply_util.dart';
 import 'package:sputnik_ui/config/global_config_widget.dart';
 import 'package:sputnik_ui/tool/file_saver.dart';
 import 'package:sputnik_ui/tool/image_info_provider.dart';
+import 'package:sputnik_ui/tool/sputnik_mime_type_resolver.dart';
 import 'package:sputnik_ui/widget/component/conversation_app_bar.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/audio_messag_overlay.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/message_input_bar.dart';
@@ -158,19 +160,20 @@ class _ConversationRouteState extends State<ConversationRoute> {
                           _textEditingController.clear();
                           replyControllor.clearReply();
                         },
-                        onSendImageMessage: (File file) async {
-                          final infoProvider = ImageInfoProvider(file);
-                          await infoProvider.init();
-                          final contentType = ContentType.parse(infoProvider.mimeType);
-                          final imageMedia = await widget.accountController.postMedia(infoProvider.fileName, infoProvider.path, contentType);
-                          final info = m.ImageInfo(
-                            size: infoProvider.lengthInBytes.toDouble(),
-                            mimetype: contentType.mimeType,
-                            w: infoProvider.imageSize.width,
-                            h: infoProvider.imageSize.height,
-                          );
-                          await widget.accountController.sendImageMessage(widget.roomId, infoProvider.fileName, imageMedia.body.content_uri, info);
-                          infoProvider.release();
+                        onSendImageMessage: _onSendImage,
+                        onSendFiles: (Map<String, String> files) async {
+                          for (final entry in files.entries) {
+                            final name = entry.key;
+                            final path = entry.value;
+                            final file = File(path);
+                            final header = await file.openRead(0, defaultMagicNumbersMaxLength).expand((l) => l).toList();
+                            final mimeType = SputnikMimeTypeResolver().lookup(path, headerBytes: header);
+                            if (mimeType != null && mimeType.startsWith('image')) {
+                              await _onSendImage(file);
+                            } else {
+                              await _onSendFile(name, file, mimeType);
+                            }
+                          }
                         },
                       ),
                     ],
@@ -180,17 +183,7 @@ class _ConversationRouteState extends State<ConversationRoute> {
                     child: AudioMessageOverlay(
                         controller: audioMessageOverlayController,
                         voiceRecorder: voiceRecorder,
-                        onSendAudio: (uri, info) async {
-                          try {
-                            final mediaResult = await widget.accountController.postMedia('audio.awb', uri, ContentType.parse(info.mimetype));
-                            final matrixMediaUri = mediaResult.body.content_uri;
-                            await widget.accountController.sendAudioMessage(widget.roomId, 'audio.awb', matrixMediaUri, info);
-                          } catch (e, trace) {
-                            debugPrint(e.toString());
-                            debugPrint(trace.toString());
-                          }
-                          File.fromUri(uri).delete();
-                        },
+                        onSendAudio: _onSendAudion,
                         onLockChanged: (isLocked) => setState(() => isOverlayLocked = isLocked)),
                   ),
                 ],
@@ -200,5 +193,43 @@ class _ConversationRouteState extends State<ConversationRoute> {
         },
       ),
     );
+  }
+
+  _onSendAudion(uri, info) async {
+    try {
+      final mediaResult = await widget.accountController.postMedia('audio.awb', uri, ContentType.parse(info.mimetype));
+      final matrixMediaUri = mediaResult.body.content_uri;
+      await widget.accountController.sendAudioMessage(widget.roomId, 'audio.awb', matrixMediaUri, info);
+    } catch (e, trace) {
+      debugPrint(e.toString());
+      debugPrint(trace.toString());
+    }
+    File.fromUri(uri).delete();
+  }
+
+  _onSendImage(File file) async {
+    final infoProvider = ImageInfoProvider(file);
+    await infoProvider.init();
+    final contentType = ContentType.parse(infoProvider.mimeType);
+    final imageMedia = await widget.accountController.postMedia(infoProvider.fileName, infoProvider.path, contentType);
+    final info = m.ImageInfo(
+      size: infoProvider.lengthInBytes.toDouble(),
+      mimetype: contentType.mimeType,
+      w: infoProvider.imageSize.width,
+      h: infoProvider.imageSize.height,
+    );
+    await widget.accountController.sendImageMessage(widget.roomId, infoProvider.fileName, imageMedia.body.content_uri, info);
+    infoProvider.release();
+  }
+
+  _onSendFile(String name, File file, String mimeType) async {
+    final contentType = mimeType != null ? ContentType.parse(mimeType) : ContentType.binary;
+
+    final imageMedia = await widget.accountController.postMedia(name, Uri.parse(file.path), contentType);
+    final info = m.FileInfo(
+      size: await file.length(),
+      mimetype: contentType.mimeType,
+    );
+    await widget.accountController.sendFileMessage(widget.roomId, name, imageMedia.body.content_uri, info);
   }
 }

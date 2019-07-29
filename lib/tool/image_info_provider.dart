@@ -20,12 +20,15 @@ import 'dart:ui';
 import 'package:mime/mime.dart';
 import 'package:image/image.dart';
 
+import 'sputnik_mime_type_resolver.dart';
+
 class ImageInfoProvider {
   final File file;
   List<int> _bytes;
   String _fileName;
   Uri _path;
   Size _size;
+  static final mimeTypeResolver = SputnikMimeTypeResolver();
 
   ImageInfoProvider(this.file) {
     _path = Uri.parse(file.path);
@@ -52,7 +55,7 @@ class ImageInfoProvider {
     String path,
     List<int> bytes,
   ) {
-    return lookupMimeType(path, headerBytes: bytes);
+    return mimeTypeResolver.lookup(path, headerBytes: bytes);
   }
 
   void release() {
