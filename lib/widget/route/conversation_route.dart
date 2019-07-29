@@ -20,7 +20,7 @@ import 'dart:io';
 import 'package:sputnik_matrix_sdk/util/rich_reply_util.dart';
 import 'package:sputnik_ui/config/global_config_widget.dart';
 import 'package:sputnik_ui/tool/file_saver.dart';
-import 'package:sputnik_ui/tool/image_file_util.dart';
+import 'package:sputnik_ui/tool/image_info_provider.dart';
 import 'package:sputnik_ui/widget/component/conversation_app_bar.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/audio_messag_overlay.dart';
 import 'package:sputnik_ui/widget/component/message_input_bar/message_input_bar.dart';
