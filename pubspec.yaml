@@ -11,8 +11,10 @@ dependencies:
   url_launcher: ^5.0.3
   open_file: ^2.0.3
   intl: ^0.15.8
+  video_player: ^0.10.1+6
   tuple: ^1.0.2
   flutter_cache_manager: ^0.3.2
+  device_info: ^0.4.0+2
   audioplayers: ^0.13.1
   flutter_html: ^0.10.1
   mime: ^0.9.6+3

@@ -43,6 +43,7 @@ import 'package:audioplayers/audioplayers.dart';
 
 import 'package:sputnik_ui/widget/component/timeline/widgets/text_widget.dart';
 import 'package:intl/intl.dart';
+import 'package:sputnik_ui/widget/component/timeline/widgets/video_widget.dart';
 
 import 'timeline/model/model.dart';
 import 'timeline/widgets/file_widget.dart';
@@ -228,6 +229,12 @@ class _MessageListState extends State<MessageList> {
       } else if (msg is AudioMessage) {
         child = AudioWidget(
           audioPlayer: audioPlayer,
+          msg: msg,
+          matrixUriToUrl: widget.accountController.matrixUriToUrl,
+        );
+      } else if (msg is VideoMessage) {
+        child = VideoWidget(
+          event: event,
           msg: msg,
           matrixUriToUrl: widget.accountController.matrixUriToUrl,
         );
