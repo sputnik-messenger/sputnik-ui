@@ -25,13 +25,14 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'audio_messag_overlay.dart';
+import 'package:device_info/device_info.dart';
 
 class MessageInputBar extends StatefulWidget {
   final void Function(InputMode) onInputMode;
   final void Function(String) onSendTextMessage;
   final void Function(ReplyToInfo, String) onSendReplyMessage;
   final void Function(File) onSendImageMessage;
-  final void Function(Map<String,String>) onSendFiles;
+  final void Function(Map<String, String>) onSendFiles;
   final AudioMessageOverlayController audioMessageOverlayController;
   final ReplyController replyController;
 
@@ -58,6 +59,7 @@ class MessageInputBarState extends State<MessageInputBar> with SingleTickerProvi
   InputMode inputMode = InputMode.Neutral;
   bool readyToSend = false;
   ReplyToInfo replyToInfo;
+  bool disableVoiceRecording = false;
 
   TextEditingController textEditingController = TextEditingController();
 
@@ -77,6 +79,19 @@ class MessageInputBarState extends State<MessageInputBar> with SingleTickerProvi
     });
 
     widget.replyController._attach(this);
+
+    if (Platform.isAndroid) {
+      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      deviceInfo.androidInfo.then((info) {
+        if(info.version.sdkInt < 24) {
+          setState(() {
+            if (mounted) {
+              disableVoiceRecording = true;
+            }
+          });
+        };
+      });
+    }
 
     super.initState();
   }
@@ -107,7 +122,7 @@ class MessageInputBarState extends State<MessageInputBar> with SingleTickerProvi
           ),
         ),
         Visibility(
-          visible: inputMode == InputMode.Neutral || inputMode == InputMode.Audio,
+          visible: !disableVoiceRecording && (inputMode == InputMode.Neutral || inputMode == InputMode.Audio),
           child: Padding(
             padding: const EdgeInsets.only(bottom: 4.0),
             child: Draggable(
@@ -169,8 +184,7 @@ class MessageInputBarState extends State<MessageInputBar> with SingleTickerProvi
             child: Padding(
               padding: EdgeInsets.only(bottom: 4),
               child: SendMessageButton(onPressed: () {
-                if (
-                readyToSend) {
+                if (readyToSend) {
                   if (inputMode == InputMode.Text) {
                     widget.onSendTextMessage(textEditingController.text);
                     textEditingController.clear();
