@@ -69,10 +69,9 @@ class _ConversationListItemSate extends State<ConversationListItem> {
       leading: AspectRatio(aspectRatio: 1, child: RoomAvatar(widget.avatarUrl, widget.roomName, key: Key(widget.avatarUrl.toString()),)),
       title: Text(
         widget.roomName,
-        textScaleFactor: 1.2,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: hasNotifications ? TextStyle(fontWeight: FontWeight.w700) : null,
+        style: hasNotifications ? TextStyle(fontWeight: FontWeight.w700, fontSize: 17) : null,
       ),
       subtitle: Row(
         children: <Widget>[
@@ -108,7 +107,7 @@ class _ConversationListItemSate extends State<ConversationListItem> {
               child: CircleAvatar(
                 child: Text(
                   widget.roomSummary.unreadNotificationCounts.notification_count.toString(),
-                  style: TextStyle(fontSize:theme.textTheme.body1.fontSize * 1 ),
+                  style: TextStyle(fontSize:theme.textTheme.body1.fontSize),
                 ),
                 radius: theme.textTheme.body1.fontSize*1.1,
               )),

@@ -111,7 +111,7 @@ class ReactionDialog extends StatelessWidget {
 
           final text = Text(
             r,
-            style: TextStyle(fontSize: 32),
+            style: TextStyle(fontSize: 25),
           );
 
           final reactionCount = model.reactions.countReactionsToTargetWithKey(
@@ -119,19 +119,31 @@ class ReactionDialog extends StatelessWidget {
             r,
           );
 
+          final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+          final fontSize = Theme.of(context).textTheme.body1.fontSize * textScaleFactor;
           return InkWell(
             child: Stack(
+              fit: StackFit.loose,
               children: <Widget>[
                 Padding(padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24), child: text),
                 Visibility(
                   visible: reactionCount > 0,
-                  child: CircleAvatar(
-                    maxRadius: 12,
-                    backgroundColor: isUsed ? accentColor.withOpacity(0.8) : Colors.grey.withOpacity(0.4),
-                    foregroundColor: Colors.grey[900],
+                  child: Container(
+                    alignment: Alignment.center,
+                    width: fontSize * 2 + 2,
+                    height: fontSize * 2 + 2,
+                    decoration: BoxDecoration(
+                        color: isUsed ? accentColor.withOpacity(0.1):Colors.white.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(100),
+                        border: Border.all(
+                          width: 2,
+                          color: isUsed ? accentColor : Colors.grey.withOpacity(0.9),
+                        )),
                     child: Text(
-                      reactionCount.toString(),
-                      style: TextStyle(fontSize: 12),
+                      reactionCount < 1000 ? reactionCount.toString() : '>${(reactionCount/1000).floor()}k',
+                      maxLines: 1,
+                      overflow: TextOverflow.visible,
+                      style: TextStyle(color: isUsed ? accentColor: Colors.grey.withOpacity(0.9), fontWeight: FontWeight.bold),
                     ),
                   ),
                 )

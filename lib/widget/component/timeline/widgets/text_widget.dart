@@ -45,7 +45,7 @@ class TextWidget extends StatelessWidget {
         bool isShortEmoji = nonAsciiOnlyRegex.hasMatch(text) && text.length < 20;
         child = Text(
           text,
-          textScaleFactor: isShortEmoji ? 3 : 1,
+          style: TextStyle(fontSize: isShortEmoji ? 42 : null),
         );
       }
     }
@@ -85,6 +85,7 @@ class TextWidget extends StatelessWidget {
       showImages: false,
       //todo: show images and support mxc image uris
       linkStyle: TextStyle(fontWeight: FontWeight.w500, decoration: TextDecoration.underline, color: Colors.black),
+      defaultTextStyle: TextStyle(fontSize: 14 * MediaQuery.of(context).textScaleFactor),
     );
   }
 

@@ -95,7 +95,7 @@ class _RoomAvatarState extends State<RoomAvatar> {
     return CircleAvatar(
       child: Text(
         widget.label == null || widget.label.isEmpty ? '' : String.fromCharCode(widget.label.runes.first),
-        textScaleFactor: 1.3,
+        style: TextStyle(fontSize: 19),
       ),
     );
   }

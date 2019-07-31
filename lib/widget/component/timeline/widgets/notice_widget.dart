@@ -27,8 +27,7 @@ class NoticeWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       msg.body != null ? msg.body.trim() : '',
-      textScaleFactor: 0.8,
-      style: TextStyle(color: Colors.black.withOpacity(0.4), fontWeight: FontWeight.bold),
+      style: TextStyle(color: Colors.grey[600]),
     );
   }
 }

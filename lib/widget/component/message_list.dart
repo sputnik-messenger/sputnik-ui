@@ -319,7 +319,6 @@ class _MessageListState extends State<MessageList> {
       if (event.unsigned.containsKey('redacted_because')) {
         child = child = Text(
           '✘ redacted',
-          textScaleFactor: 0.8,
           style: TextStyle(color: Colors.black.withOpacity(0.4)),
         );
       }
@@ -334,6 +333,17 @@ class _MessageListState extends State<MessageList> {
                 fit: BoxFit.fill,
                 child: InkWell(
                   onTap: () => _onSendReaction(model, kv.key, event),
+                  onLongPress: () => showDialog(
+                      context: context,
+                      builder: (context) => ReactionSenderDialog(
+                            model: model,
+                            reactionKey: kv.key,
+                            targetEvent: event,
+                            onSendReaction: (r) {
+                              _onSendReaction(model, r, event);
+                              Navigator.of(context).pop();
+                            },
+                          )),
                   child: Container(
                     alignment: const Alignment(0, 0),
                     padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),

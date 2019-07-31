@@ -67,11 +67,12 @@ class ConversationAppBar extends AppBar {
                       children: <Widget>[
                         Text(
                           title?? '',
+                          textScaleFactor: 1, //required to override platform text scale
                           style: TextStyle(
+                            fontSize: 20,
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
-                          textScaleFactor: 1.4,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
