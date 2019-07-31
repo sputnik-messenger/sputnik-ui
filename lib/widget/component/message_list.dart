@@ -318,7 +318,7 @@ class _MessageListState extends State<MessageList> {
       }
       if (event.unsigned.containsKey('redacted_because')) {
         child = child = Text(
-          '✘ redacted',
+          '✘ removed',
           style: TextStyle(color: Colors.black.withOpacity(0.4)),
         );
       }

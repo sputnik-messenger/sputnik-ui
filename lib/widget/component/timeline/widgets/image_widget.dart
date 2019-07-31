@@ -223,6 +223,22 @@ class _ImageWidgetState extends State<ImageWidget> {
                           }
                         },
                       ),
+                      Visibility(
+                        visible: msg.info?.mimetype.toLowerCase() == 'image/gif' ,
+                        child: Container(
+                          alignment: Alignment.center,
+                          child: Text(
+                            'GIF',
+                            textScaleFactor: 1,
+                            style: TextStyle(
+                              fontSize: 45,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.grey[900].withOpacity(0.7),
+                              shadows: [Shadow(color: Colors.white, blurRadius: 10)]
+                            ),
+                          ),
+                        ),
+                      )
                     ],
                   ),
                 ),
@@ -252,7 +268,7 @@ class _ImageWidgetState extends State<ImageWidget> {
               return child;
             },
           ),
-        )
+        ),
       ]);
     }
 
