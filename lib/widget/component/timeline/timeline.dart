@@ -38,6 +38,7 @@ class TimelineRow extends StatefulWidget {
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final VoidCallback onSwipeRight;
+  final VoidCallback onSwipeLeft;
 
   static const _alignMapping = const {
     TimelineAlign.center: const Alignment(0, 0),
@@ -52,6 +53,7 @@ class TimelineRow extends StatefulWidget {
     this.onTap,
     this.onLongPress,
     this.onSwipeRight,
+    this.onSwipeLeft,
   }) : super(key: key);
 
   @override
@@ -59,8 +61,8 @@ class TimelineRow extends StatefulWidget {
 }
 
 class _TimelineRowState extends State<TimelineRow> {
-  static const swipeThreshold = 100.0;
-  static const maxSwipeOffset = swipeThreshold * 1.5;
+  static const double swipeThreshold = 100.0;
+  static const double maxSwipeOffset = swipeThreshold * 1.5;
 
   Offset swipeOffset = Offset.zero;
 
@@ -71,22 +73,29 @@ class _TimelineRowState extends State<TimelineRow> {
       onLongPress: widget.onLongPress,
       child: GestureDetector(
         onHorizontalDragUpdate: (d) {
-          if (widget.onSwipeRight != null) {
+          if (widget.onSwipeRight != null || widget.onSwipeRight != null) {
+            final maxOffset = widget.onSwipeRight != null ? maxSwipeOffset : 0.0;
+            final minOffset = widget.onSwipeLeft != null ? -maxSwipeOffset : 0.0;
+
             setState(() {
               swipeOffset = swipeOffset.translate(d.delta.dx, 0.0);
-              swipeOffset = Offset(swipeOffset.dx.clamp(0.0, maxSwipeOffset), 0);
+              swipeOffset = Offset(swipeOffset.dx.clamp(minOffset, maxOffset), 0);
             });
           }
         },
         onHorizontalDragEnd: (d) {
-          if (widget.onSwipeRight != null) {
-            if (swipeOffset.dx.abs() > swipeThreshold) {
+          if (swipeOffset.dx > swipeThreshold) {
+            if (widget.onSwipeRight != null) {
               widget.onSwipeRight();
             }
-            setState(() {
-              swipeOffset = Offset.zero;
-            });
+          } else if (swipeOffset.dx < -swipeThreshold) {
+            if (widget.onSwipeLeft != null) {
+              widget.onSwipeLeft();
+            }
           }
+          setState(() {
+            swipeOffset = Offset.zero;
+          });
         },
         child: Container(
           decoration:
@@ -101,16 +110,11 @@ class _TimelineRowState extends State<TimelineRow> {
                     child: Padding(
                       padding: const EdgeInsets.only(left: 24),
                       child: Opacity(
-                        opacity: swipeOffset.dx.abs() > swipeThreshold ? 1 : 0.3,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Icon(
-                              Icons.reply,
-                              size: 30,
-                              color: Colors.grey[800],
-                            ),
-                          ],
+                        opacity: swipeOffset.dx > swipeThreshold ? 1 : 0.3,
+                        child: Icon(
+                          Icons.reply,
+                          size: 30,
+                          color: Colors.grey[800],
                         ),
                       ),
                     )),
@@ -118,6 +122,22 @@ class _TimelineRowState extends State<TimelineRow> {
               Transform.translate(
                 offset: swipeOffset,
                 child: widget.child,
+              ),
+              Visibility(
+                visible: swipeOffset.dx < 0,
+                child: Align(
+                    alignment: Alignment(1, 0),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 24.0),
+                      child: Opacity(
+                        opacity: swipeOffset.dx < -swipeThreshold ? 1 : 0.3,
+                        child: Icon(
+                          Icons.thumb_up,
+                          size: 30,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                    )),
               ),
             ],
           ),

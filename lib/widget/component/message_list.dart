@@ -33,6 +33,8 @@ import 'package:sputnik_ui/widget/component/timeline/widgets/encrypted_widget.da
 import 'package:sputnik_ui/widget/component/timeline/widgets/image_widget.dart';
 import 'package:sputnik_ui/widget/component/timeline/widgets/message_dialog.dart';
 import 'package:sputnik_ui/widget/component/timeline/widgets/notice_widget.dart';
+import 'package:sputnik_ui/widget/component/timeline/widgets/reaction_dialog.dart';
+import 'package:sputnik_ui/widget/component/timeline/widgets/reaction_sender_dialog.dart';
 import 'package:sputnik_ui/widget/component/timeline/widgets/state_event_widget.dart';
 import 'package:sputnik_matrix_sdk/matrix_manager/account_controller.dart';
 import 'package:matrix_rest_api/matrix_client_api_r0.dart' hide State;
@@ -184,9 +186,30 @@ class _MessageListState extends State<MessageList> {
     VoidCallback onTap;
     void Function(Widget widget) onLongPress;
     VoidCallback onSwipeRight;
+    VoidCallback onSwipeLeft;
     if (entry is EventEntry) {
       final event = entry.event.event;
 
+      onSwipeRight = () => initReplyTo(ReplyToInfo(model.roomId, event));
+      onSwipeLeft = () => showDialog(
+            context: context,
+            builder: (context) => ReactionDialog(
+              model: model,
+              targetEvent: event,
+              onReactionSelected: (r) => _onSendReaction(model, r, event),
+              onReactionLongPressed: (r) => showDialog(
+                  context: context,
+                  builder: (context) => ReactionSenderDialog(
+                        model: model,
+                        reactionKey: r,
+                        targetEvent: event,
+                        onSendReaction: (r) {
+                          _onSendReaction(model, r, event);
+                          Navigator.of(context).pop();
+                        },
+                      )),
+            ),
+          );
       BubbleType bubbleType = BubbleType.Speech;
 
       var isSticker = event.type == 'm.sticker';
@@ -201,6 +224,8 @@ class _MessageListState extends State<MessageList> {
           senderName: senderName,
           stateKeyName: stateKeyName,
         );
+        onSwipeLeft = null;
+        onSwipeRight = null;
       } else if (msg is ImageMessage) {
         child = ImageWidget(
           saveImage: fileSaver.saveImage,
@@ -308,22 +333,7 @@ class _MessageListState extends State<MessageList> {
               (kv) => FittedBox(
                 fit: BoxFit.fill,
                 child: InkWell(
-                  onTap: () => {
-                    showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                              title: Text(
-                                '${kv.key}',
-                                textAlign: TextAlign.center,
-                              ),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: kv.value
-                                    .map((e) => Text('${model.members[e.roomEvent.sender]?.displayName?.value ?? e.roomEvent.sender}'))
-                                    .toList(),
-                              ),
-                            ))
-                  },
+                  onTap: () => _onSendReaction(model, kv.key, event),
                   child: Container(
                     alignment: const Alignment(0, 0),
                     padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
@@ -373,12 +383,18 @@ class _MessageListState extends State<MessageList> {
                   event,
                   item,
                   redact: canRedact ? () => widget.accountController.redactEvent(model.roomId, event.event_id) : null,
-                  copyText: !(msg is ImageMessage) && !isSticker && !event.isRedaction && !event.isStateEvent ? msg.body : null,
-                  copyUrl: msg is ImageMessage && !isSticker ? widget.accountController.matrixUriToUrl(Uri.parse(msg.url)).toString() : null,
+                  copyText:
+                      !(msg is VideoMessage || msg is ImageMessage || msg is AudioMessage) && !isSticker && !event.isRedaction && !event.isStateEvent
+                          ? msg.body
+                          : null,
+                  copyUrl: (msg is VideoMessage || msg is ImageMessage || msg is AudioMessage) && !isSticker
+                      ? widget.accountController.matrixUriToUrl(Uri.parse(msg.url)).toString()
+                      : null,
                 ),
               );
 
-      onSwipeRight = isRedacted ? null : () => initReplyTo(ReplyToInfo(model.roomId, event));
+      onSwipeRight = isRedacted ? null : onSwipeRight;
+      onSwipeLeft = isRedacted ? null : onSwipeLeft;
 
       return MessageItem(
         showSenderName: model.members.length > 2,
@@ -394,6 +410,7 @@ class _MessageListState extends State<MessageList> {
         onTap: onTap,
         onLongPress: onLongPress,
         onSwipeRight: onSwipeRight,
+        onSwipeLeft: onSwipeLeft,
       );
     } else if (entry is GroupEntry) {
       return FlatButton(
@@ -429,6 +446,15 @@ class _MessageListState extends State<MessageList> {
       );
     } else {
       return Text('todo');
+    }
+  }
+
+  _onSendReaction(TimelineModel model, String reactionKey, RoomEvent targetEvent) {
+    final alreadySent = model.reactions.reactionSentByUserToTarget(reactionKey, model.userId, targetEvent.event_id);
+    if (alreadySent == null) {
+      widget.accountController.sendReaction(model.roomId, targetEvent, reactionKey);
+    } else {
+      widget.accountController.redactEvent(model.roomId, alreadySent.roomEvent.event_id);
     }
   }
 }

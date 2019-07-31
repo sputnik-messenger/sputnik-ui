@@ -56,7 +56,7 @@ class MessageDialog extends SimpleDialog {
     }
     if (copyText != null) {
       actions.add(_dialogOption(context, 'copy text', Icons.content_copy, () => _copyToClipboard(context, copyText)));
-      actions.add(_dialogOption(context, 'share', Icons.share, () => Share.share(copyText)));
+      actions.add(_dialogOption(context, 'share text', Icons.share, () => Share.share(copyText)));
     }
     if (copyUrl != null) {
       actions.add(_dialogOption(context, 'copy link', Icons.content_copy, () => _copyToClipboard(context, copyUrl)));
